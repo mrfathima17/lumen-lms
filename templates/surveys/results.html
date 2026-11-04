@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Results · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<small class="muted"><a href="{% url 'surveys:manage-list' %}">Polls &amp; surveys</a> / {{ survey.course.code }}</small>
+<div class="page-header"><div><h1>{{ survey.title }} · results</h1><p class="sub">{{ survey.course.code }} · {{ survey.course.title }}{% if survey.anonymous %} · anonymous{% endif %}</p></div>
+<div class="cluster"><a class="btn ghost" href="{% url 'surveys:editor' survey.pk %}">{% icon "edit" %} Edit questions</a><a class="btn ghost" href="{% url 'surveys:export' survey.pk %}">{% icon "download" %} Export CSV</a></div></div>
+<div class="grid g4 mb-5"><div class="card stat"><b>{{ took|length }} / {{ total_students }}</b><span>Responses{% if stats.response_pct is not None %} ({{ stats.response_pct }}%){% endif %}</span></div>
+<div class="card stat"><b>{% if stats.average is None %}—{% else %}{{ stats.average }} / 5{% endif %}</b><span>Average rating</span></div>
+<div class="card stat"><b>{{ stats.comments }}</b><span>Written comments</span></div>
+<div class="card stat"><b>{% if not survey.is_visible %}Draft{% elif state == "open" %}Open{% elif state == "closed" %}Closed{% else %}Scheduled{% endif %}</b><span>Status</span></div></div>
+{% include "surveys/_results.html" with staff=True %}
+<section class="card mt-4"><h3>Who took part</h3><p class="muted fs-xs">{{ took|length }} of {{ total_students }}{% if survey.anonymous %}. Names are shown here only; answers are stored without them.{% endif %}</p>
+{% if missing %}<p class="mt-3"><b>Not yet:</b> {% for s in missing %}{{ s.get_full_name|default:s.username }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}</section>
+{% endblock %}

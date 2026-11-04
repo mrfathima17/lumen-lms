@@ -1,0 +1,44 @@
+{% extends "base.html" %}{% load static lumen %}
+{% block title %}Bulk user import · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Bulk user import</h1><p class="sub"><a href="{% url 'administration:users' %}">← Users</a> · create many accounts from a CSV file</p></div></div>
+{% if notice %}<div class="notice error mb-4" role="alert">{{ notice }}</div>{% endif %}
+<form method="post" enctype="multipart/form-data" id="importForm" novalidate>{% csrf_token %}
+<input type="hidden" name="opts" value="1">{% if preview %}<input type="hidden" name="text" value="{{ preview.text }}"><input type="hidden" name="filename" value="{{ preview.filename }}">{% endif %}
+<div class="grid g-import">
+<div class="card">
+  <h2>1 · Upload</h2>
+  <label class="dropzone dz{% if file_error %} invalid{% endif %}" id="dz" for="csvFile">
+    <span class="hero-icon sm">{% icon "upload" %}</span>
+    {% if preview %}<b>{{ preview.filename|default:"Your file" }}</b><span class="muted">Drop another file here, or click to choose one</span>
+    {% else %}<b>Drop users.csv here</b><span class="muted">or click to choose a file</span>{% endif %}
+    <span class="muted fs-xs mt-2">Columns: {{ columns|join:", " }}. Only <code>username</code> is required.</span>
+    <input type="file" id="csvFile" name="file" accept=".csv,text/csv" class="sr-only">
+  </label>
+  {% if file_error %}<div class="field invalid"><div class="err">{% icon "alert" %}{{ file_error }}</div></div>{% endif %}
+  <noscript><button class="btn mt-3" type="submit">Check file</button></noscript>
+  <hr class="sep my-4">
+  <h2>2 · Options</h2>
+  {% include "partials/field.html" with field=opts.default_role %}
+  {% include "partials/field.html" with field=opts.sample_password %}
+  <div class="split mb-4"><span id="optEmail">{{ opts.send_email.label }}</span><label class="toggle"><input type="checkbox" name="send_email" aria-labelledby="optEmail"{% if opts.send_email.value %} checked{% endif %}><span></span></label></div>
+  <div class="split mb-4"><span id="optForce">{{ opts.force_change.label }}</span><label class="toggle"><input type="checkbox" name="force_change" aria-labelledby="optForce"{% if opts.force_change.value %} checked{% endif %}><span></span></label></div>
+  <div class="split"><span id="optSkip">{{ opts.skip_existing.label }}</span><label class="toggle"><input type="checkbox" name="skip_existing" aria-labelledby="optSkip" data-reload{% if opts.skip_existing.value %} checked{% endif %}><span></span></label></div>
+</div>
+
+<section class="card"><h2>3 · Preview</h2>
+{% if preview %}
+  <p class="sub mb-3">{{ preview.total }} row{{ preview.total|pluralize }} read · {{ preview.ok }} valid · {{ preview.bad }} with errors</p>
+  <div class="scroll-x"><table class="import-preview"><thead><tr><th>Row</th><th>Name</th><th>Username</th><th>Result</th></tr></thead><tbody>
+  {% for r in preview.rows %}<tr><td>{{ r.line|add:"-1" }}</td><td>{% with n=r.first_name|add:" "|add:r.last_name %}{{ n|default:"(blank)" }}{% endwith %}</td><td>{{ r.username|default:"—" }}</td>
+  <td><span class="pill {% if r.status == 'ok' %}ok{% elif r.status == 'duplicate' %}warn{% else %}bad{% endif %}"{% if r.errors %} title="{{ r.errors|join:'; ' }}"{% endif %}>{{ r.label }}</span>{% if r.errors %}<div class="muted fs-xs mt-1">{{ r.errors|join:"; " }}</div>{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+  {% if not preview.shown_all %}<p class="muted fs-xs mt-3">Showing the first {{ preview.rows|length }} of {{ preview.total }} rows. The error report lists every problem.</p>{% endif %}
+  <div class="cluster mt-4">{% if preview.ok %}<button class="btn" type="submit" formaction="{% url 'administration:import-confirm' %}" formnovalidate>Import {{ preview.ok }} user{{ preview.ok|pluralize }}</button>{% endif %}
+  {% if preview.bad %}<button class="btn ghost" type="submit" formaction="{% url 'administration:import-errors' %}" formnovalidate>Download error report</button>{% endif %}</div>
+  {% if not preview.ok %}<div class="notice error mt-4">No row can be imported. Fix the file and upload it again.</div>{% elif preview.bad %}<p class="muted fs-xs mt-3">The {{ preview.bad }} row{{ preview.bad|pluralize }} with problems will be skipped.</p>{% endif %}
+{% else %}
+  <div class="empty">{% icon "upload" %}<h3>No file yet</h3><p>Choose a CSV file and you will see every row checked here before anything is created.</p></div>
+{% endif %}
+</section></div></form>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/import-users.js' %}"></script>{% endblock %}

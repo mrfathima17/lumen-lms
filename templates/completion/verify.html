@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Verify a certificate · {{ lumen_site.site_name }}{% endblock %}
+{% block body %}
+<main class="main" id="main"><div class="card empty mw-480 mx-auto">
+{% if cert %}{% if cert.is_valid %}<div class="hero-icon">{% icon "check-circle" %}</div><h1>Certificate is valid</h1><p><b>{{ cert.student_name }}</b> completed <b>{{ cert.course_code }} · {{ cert.course_title }}</b> on {{ cert.issued_at|date:"j F Y" }}.</p>
+{% else %}<div class="hero-icon">{% icon "alert" %}</div><h1>Certificate was revoked</h1><p>This certificate is no longer valid (revoked {{ cert.revoked_at|date:"j F Y" }}).</p>{% endif %}<p class="muted">Code <code>{{ cert.code }}</code> · issued by {{ lumen_site.site_name }}</p>
+{% else %}<div class="hero-icon">{% icon "search" %}</div><h1>No certificate found</h1><p>We could not find a certificate with the code <code>{{ code }}</code>. Check the code on the printed certificate and try again.</p>{% endif %}
+</div></main>
+{% endblock %}

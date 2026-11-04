@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Rubric · {{ a.title }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Rubric</h1><p class="sub"><a href="{% url 'assignments:detail' a.pk %}">← {{ a.title }}</a> · {{ total|floatformat:"-2" }} points, scaled to {{ a.max_mark|floatformat:"-2" }}</p></div>
+{% if not locked %}<a class="btn" href="{% url 'assignments:criterion-new' a.pk %}">{% icon "plus" %}Add row</a>{% endif %}</div>
+{% if locked %}<div class="card mb-4">{% icon "lock" %} Work has been marked with this rubric, so its rows are locked.</div>{% endif %}
+{% for c in criteria %}<section class="card mb-4"><div class="split"><h3>{{ c.title }}</h3>{% if not locked %}<span class="cluster"><a class="btn sm ghost" href="{% url 'assignments:criterion-edit' c.pk %}">Edit</a>
+<form method="post" action="{% url 'assignments:criterion-delete' c.pk %}" onsubmit="return confirm('Remove this row?')">{% csrf_token %}<button class="btn sm danger">Remove</button></form></span>{% endif %}</div>
+{% if c.description %}<p class="muted fs-xs">{{ c.description }}</p>{% endif %}
+<div class="scroll-x mt-3"><table><tbody>{% for lv in c.levels.all %}<tr><td><b>{{ lv.label }}</b></td><td class="num">{{ lv.points|floatformat:"-2" }}</td><td class="muted">{{ lv.description }}</td></tr>{% endfor %}</tbody></table></div></section>
+{% empty %}<div class="card empty">{% icon "file-list" %}<h3>No rubric yet</h3><p>Without a rubric you type the mark yourself. With one, you pick a level per row and the mark is worked out for you.</p><a class="btn" href="{% url 'assignments:criterion-new' a.pk %}">Add the first row</a></div>{% endfor %}
+{% if others and not criteria %}<form method="post" action="{% url 'assignments:rubric-copy' a.pk %}" class="card cluster">{% csrf_token %}<select name="source" aria-label="Copy from">{% for o in others %}<option value="{{ o.pk }}">{{ o.title }}</option>{% endfor %}</select><button class="btn ghost" type="submit">Copy rubric from this assignment</button></form>{% endif %}
+{% endblock %}

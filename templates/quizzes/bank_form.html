@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Bank question · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{% if bq %}Edit bank question{% else %}New bank question{% endif %}</h1><p class="sub"><a href="{% url 'quizzes:bank-list' course.pk %}">← {{ course.code }} question bank</a></p></div></div>
+<form method="post" class="card" novalidate>{% csrf_token %}{% for field in form %}{% include "partials/field.html" %}{% endfor %}
+<p class="muted fs-xs">Changing a bank question does not change quizzes that already use it.</p><div class="mt-4"><button class="btn" type="submit">Save</button></div></form>
+{% endblock %}

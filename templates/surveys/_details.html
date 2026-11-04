@@ -1,0 +1,7 @@
+{% load lumen %}
+<dl class="kv mt-3"><dt>Opens</dt><dd>{% if survey.opens_at %}{{ survey.opens_at|date:"j M, g:i A" }}{% else %}Open now{% endif %}</dd>
+  <dt>Closes</dt><dd>{% if survey.closes_at %}{{ survey.closes_at|date:"D j M, g:i A" }}{% else %}No closing date{% endif %}</dd>
+  <dt>Answers</dt><dd>One per student</dd>
+  <dt>Results</dt><dd>{% if survey.show_results == "after_vote" %}Shown after you answer{% elif survey.show_results == "after_close" %}Shown after it closes{% else %}Staff only{% endif %}</dd>
+  <dt>Visibility</dt><dd>{% if survey.anonymous %}Anonymous{% else %}Your name is recorded{% endif %}</dd></dl>
+  <hr class="sep"><a class="btn ghost sm" href="{% url 'courses:detail' survey.course.pk %}">{% icon "arrow-left" %} Back to course</a>

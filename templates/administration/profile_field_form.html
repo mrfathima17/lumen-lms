@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{{ obj.label }} · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{{ obj.label }}</h1><p class="sub"><a href="{% url 'administration:profile-fields' %}">← Custom profile fields</a></p></div></div>
+<form method="post" class="card mw-480" novalidate>{% csrf_token %}{% for field in form %}{% include "partials/field.html" %}{% endfor %}<p class="muted fs-xs">Changing the type does not convert values already stored.</p><div class="mt-4"><button class="btn" type="submit">Save</button></div></form>
+{% endblock %}

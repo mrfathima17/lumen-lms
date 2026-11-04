@@ -1,0 +1,4 @@
+{% load lumen %}<li><span class="ico">{% icon "upload" %}</span>
+  <span class="grow"><a href="{% url 'assignments:detail' a.pk %}">{{ a.title }}</a>{% if not a.is_visible %} <span class="pill warn">Hidden</span>{% endif %}</span>
+  <span class="li-meta">{% if a.pk in submitted %}{% icon "check" %} Submitted{% else %}<span class="pill warn">Due {{ a.due_at|date:"D, j M" }}</span>{% endif %}
+    {% if not manage and a.pk not in submitted %}<a class="btn sm ml-2" href="{% url 'assignments:detail' a.pk %}">Submit</a>{% endif %}</span></li>

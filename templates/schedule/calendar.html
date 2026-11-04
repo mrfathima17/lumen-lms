@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Calendar · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{{ first|date:"F Y" }}</h1><p class="sub">Deadlines, quizzes, classes and your own events</p></div>
+<div class="cluster"><a class="btn ghost sm" href="?month={{ prev }}" aria-label="Previous month">{% icon "arrow-left" %}</a><a class="btn ghost sm" href="?month={{ today_month }}">Today</a><a class="btn ghost sm" href="?month={{ next }}" aria-label="Next month">{% icon "arrow" %}</a>
+<a class="btn ghost sm no-print" href="{% url 'schedule:export-ics' %}">{% icon "download" %} Add to calendar (.ics)</a><a class="btn sm" href="{% url 'schedule:event-new' %}">{% icon "plus" %} Add event</a></div></div>
+<div class="cluster mb-4"><span class="pill warn">Assignment</span><span class="pill ok">Quiz</span><span class="pill bg-brand-soft brand">Class</span><span class="pill mute">Event</span></div>
+<div class="cal" role="grid">
+{% for w in weekdays %}<div class="h" role="columnheader">{{ w }}</div>{% endfor %}
+{% for d in days %}<div class="d{% if d.off %} off{% endif %}{% if d.today %} today{% endif %}" role="gridcell"><b>{{ d.date.day }}</b>
+{% for it in d.items %}
+  {% if it.kind == "a" or it.kind == "q" %}<a class="ev {{ it.kind }}" href="{% url it.url_name it.pk %}" title="{{ it.course }} · {{ it.title }} · {{ it.label }} {{ it.at|time:'g:i A' }}">{{ it.title }}</a>
+  {% elif it.kind == "e" %}<span class="ev e" title="{{ it.course }} · {{ it.at|time:'g:i A' }}">{{ it.title }}</span>
+  {% else %}<span class="ev c" title="{{ it.at|time:'g:i A' }}{% if it.label %} · {{ it.label }}{% endif %}">{{ it.title }}</span>{% endif %}
+{% endfor %}</div>{% endfor %}
+</div>
+{% if events %}<section class="card mt-5"><h2>Events this month</h2>{% for e in events %}<div class="item"><div><div class="t">{{ e.title }}</div><div class="m">{{ e.starts_at|date:"D j M, g:i A" }}{% if e.course %} · {{ e.course.code }}{% else %} · Personal{% endif %}</div>{% if e.description %}<div class="m">{{ e.description }}</div>{% endif %}</div>
+{% if e.can_delete %}<form class="ml-auto" method="post" action="{% url 'schedule:event-delete' e.pk %}">{% csrf_token %}<button class="btn sm ghost" type="submit" aria-label="Delete {{ e.title }}">{% icon "trash" %}</button></form>{% endif %}</div>{% endfor %}</section>{% endif %}
+{% endblock %}

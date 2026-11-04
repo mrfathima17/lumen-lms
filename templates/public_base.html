@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% load lumen %}
+{% block body %}
+<header class="pub-h"><a class="logo" href="{% url 'core:public-home' %}">{% include "partials/logo_tile.html" %} {{ lumen_site.site_name }}</a>
+<nav class="pub-nav"><a href="{% url 'core:help' %}">Help</a><a href="{% url 'core:terms' %}">Terms</a></nav>
+<div class="r"><button type="button" data-theme-toggle class="btn ghost sm" aria-label="Toggle dark mode"></button><a class="btn" href="{% url 'accounts:login' %}">Sign in</a></div></header>
+<main id="main" class="pub-wrap">{% block content %}{% endblock %}</main>
+<footer class="pub"><span>© {% now "Y" %} {{ lumen_site.site_name }}</span> · <a href="{% url 'core:help' %}">Help</a> · <a href="{% url 'core:terms' %}">Terms &amp; privacy</a></footer>
+{% endblock %}

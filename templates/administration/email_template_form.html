@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{{ label }} · Email templates · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<h1>Email templates</h1><p class="sub mb-4">Customise the emails Lumen sends automatically</p>
+<div class="grid cols-templates">
+<nav class="card tpl-list" aria-label="Email templates">{% for r in rows %}<a href="{% url 'administration:email-template' r.key %}"{% if r.key == key %} class="on" aria-current="page"{% endif %}>{{ r.label }}<small>{% if r.custom %}Customised{% else %}Default text{% endif %}</small></a>{% endfor %}</nav>
+<form method="post" action="{% url 'administration:email-template' key %}" class="card self-start" novalidate>{% csrf_token %}<h2>{{ label }}</h2>{% for field in form %}{% include "partials/field.html" %}{% endfor %}
+<p class="muted fs-xs">Placeholders: {% for p in placeholders %}<code>{{ "{" }}{{ p }}{{ "}" }}</code> {% endfor %}</p>
+<div class="cluster mt-4"><button class="btn" type="submit">Save</button><button class="btn ghost" type="submit" name="send_test" value="1">Save and send me a test</button><button class="btn ghost danger" type="submit" name="reset" value="1" formnovalidate onclick="return confirm('Go back to the default text?')">Reset to default</button></div></form>
+<section class="card self-start"><h2>Preview</h2><p class="muted fs-xs">With sample values.</p>{% if preview_body %}<p class="mt-3"><b>{{ preview_subject }}</b></p><pre class="mt-2" style="white-space:pre-wrap;font:inherit">{{ preview_body }}</pre>{% else %}<p class="muted mt-3">Fix the errors to see a preview.</p>{% endif %}</section></div>
+{% endblock %}

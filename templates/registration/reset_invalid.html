@@ -1,0 +1,5 @@
+{% extends "public_base.html" %}{% load lumen %}
+{% block title %}Link not valid · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="card empty mw-480 mx-auto mt-6"><div class="hero-icon">{% icon "timer" %}</div><h1>This link has expired</h1><p>Reset links work once and for 30 minutes. Ask for a new one.</p><a class="btn" href="{% url 'accounts:forgot-password' %}">Send a new link</a></div>
+{% endblock %}

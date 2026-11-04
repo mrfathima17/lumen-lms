@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}New message · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>New message</h1><p class="sub"><a href="{% url 'messaging:inbox' %}">← Inbox</a> · you can message people who share a course with you, and administrators</p></div></div>
+<form method="post" class="card mw-640" novalidate>{% csrf_token %}
+{% for field in form %}{% include "partials/field.html" %}{% endfor %}
+<div class="mt-4"><button class="btn" type="submit">Send</button></div></form>
+{% endblock %}

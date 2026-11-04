@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Attendance sheet · {{ course.code }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Attendance sheet</h1><p class="sub"><a href="{% url 'attendance:course' course.pk %}">← {{ course.code }}</a> · {{ session.title }} · {{ session.held_on|date:"D j M Y" }}{% if session.start_time %}, {{ session.start_time|time:"g:i A" }}{% endif %}</p></div>
+<div class="cluster"><label class="sr-only" for="sess">Session</label><select id="sess" onchange="if(this.value)location.href=this.value">{% for x in all_sessions %}<option value="{% url 'attendance:sheet' x.pk %}"{% if x.pk == session.pk %} selected{% endif %}>{{ x.title }} · {{ x.held_on|date:"j M" }}</option>{% endfor %}<option value="{% url 'attendance:session-new' course.pk %}">+ New session</option></select>
+<form method="post" action="{% url 'attendance:session-delete' session.pk %}" onsubmit="return confirm('Delete this session and all its attendance records?')">{% csrf_token %}<button class="btn danger ghost" type="submit" aria-label="Delete session">{% icon "trash" %}</button></form>
+<button class="btn" type="submit" form="sheet-form">Save attendance</button></div></div>
+<div class="grid g4 mb-5"><div class="card stat"><b>{{ counts.present }}</b><span>Present</span></div><div class="card stat"><b>{{ counts.late }}</b><span>Late</span></div><div class="card stat"><b>{{ counts.absent }}</b><span>Absent</span></div><div class="card stat"><b>{{ counts.excused }}</b><span>Excused</span></div></div>
+{% if not taken %}<div class="notice mb-4">Attendance has not been saved for this session yet. Everyone starts as present; change the exceptions and save.</div>{% endif %}
+<form method="post" id="sheet-form" x-data="{q:''}" novalidate>{% csrf_token %}
+<div class="card"><div class="flex gap-3 mb-4"><button type="button" class="btn ghost sm" @click="$root.querySelectorAll('select.st').forEach(s => s.value = 'present')">Mark all present</button>
+<label class="sr-only" for="q">Search student</label><input id="q" class="mw-260" placeholder="Search student" x-model="q"></div>
+<table><thead><tr><th>Student</th><th>ID</th><th>Status</th><th>Overall attendance</th></tr></thead><tbody>
+{% for r in rows %}<tr x-show="!q || $el.textContent.toLowerCase().includes(q.toLowerCase())"><td><div class="flex items-center gap-2"><span class="avatar sm">{{ r.s.initials }}</span><b>{{ r.s.get_full_name|default:r.s.username }}</b></div></td><td>{{ r.s.username }}</td>
+<td><label class="sr-only" for="st{{ r.s.pk }}">Status for {{ r.s.username }}</label><select id="st{{ r.s.pk }}" class="st w-120" name="status_{{ r.s.pk }}">{% for value, label in statuses %}<option value="{{ value }}"{% if value == r.status or not r.status and value == "present" %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></td>
+<td>{% if r.overall.stats.percent is None %}<span class="pill mute">No data</span>{% else %}<span class="pill {{ r.overall.level }}">{{ r.overall.stats.percent|floatformat:"-1" }}%</span>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="4"><div class="empty">{% icon "users" %}<p>No students are enrolled yet.</p></div></td></tr>{% endfor %}</tbody></table></div>
+<div class="mt-4"><button class="btn" type="submit">Save attendance</button></div></form>
+{% endblock %}
+{% block scripts %}{% load static %}<script defer src="{% static 'js/alpine.min.js' %}"></script>{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Reports · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Reports</h1><p class="sub">Live figures across the whole site</p></div><a class="btn ghost" href="{% url 'administration:reports-export' %}">{% icon "download" %} Export course table (CSV)</a></div>
+<div class="grid g4 mb-4">
+<div class="card stat"><b>{{ users.active_total }}</b><span>Active users</span></div>
+<div class="card stat"><b>{{ users.signed_in_recently }}</b><span>Signed in in the last {{ days }} days</span></div>
+<div class="card stat"><b>{{ users.never_signed_in }}</b><span>Never signed in</span></div>
+<div class="card stat"><b>{{ users.disabled }}</b><span>Disabled accounts</span></div>
+<div class="card stat"><b>{{ totals.submissions }}</b><span>Submissions · {{ totals.to_mark }} waiting to be marked</span></div>
+<div class="card stat"><b>{{ totals.attempts }}</b><span>Quiz attempts finished</span></div>
+<div class="card stat"><b>{{ totals.assignments }}</b><span>Assignments</span></div>
+<div class="card stat"><b>{% if totals.attendance_percent is None %}—{% else %}{{ totals.attendance_percent }}%{% endif %}</b><span>Attendance (excused left out)</span></div>
+</div>
+<section class="card mb-4"><h2>New accounts per week</h2>
+{% for w in weeks %}<div class="prog-row mt-3"><span>Week of {{ w.week|date:"j M" }}</span><b>{{ w.count }}</b></div><div class="progress"><i style="width:{{ w.pct }}%"></i></div>{% endfor %}</section>
+<section class="card"><h2>Courses</h2>
+{% if rows %}<div class="scroll-x"><table class="mt-3"><thead><tr><th>Course</th><th>Lecturers</th><th class="num">Students</th><th class="num">Assignments</th><th class="num">Submissions</th><th class="num">Quiz attempts</th><th class="num">Attendance</th></tr></thead><tbody>
+{% for r in rows %}<tr><td><a href="{% url 'courses:detail' r.course.pk %}"><b>{{ r.course.code }}</b> {{ r.course.title }}</a></td><td>{{ r.lecturers }}</td><td class="num">{{ r.students }}</td><td class="num">{{ r.assignments }}</td><td class="num">{{ r.submissions }}</td><td class="num">{{ r.attempts }}</td><td class="num">{% if r.attendance is None %}—{% else %}{{ r.attendance }}%{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="empty">{% icon "book" %}<h3>No courses yet</h3><p>Courses appear here once they are created.</p></div>{% endif %}</section>
+{% endblock %}

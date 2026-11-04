@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Page not found · {{ lumen_site.site_name }}{% endblock %}
+{% block body %}
+<main id="main" class="center-page"><div class="card center-box"><div class="big fw-semi brand">404</div><h1>Page not found</h1><p class="sub">The page you are looking for does not exist or was moved.</p>
+<a class="btn" href="{% if user.is_authenticated %}{% url user.home_url_name %}{% else %}{% url 'core:public-home' %}{% endif %}">Go back</a> <a class="btn ghost" href="{% url 'core:help' %}">Contact support</a></div></main>
+{% endblock %}

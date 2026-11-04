@@ -1,0 +1,41 @@
+{% extends "base.html" %}{% load static lumen %}
+{% block title %}Backup & maintenance · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Backup &amp; maintenance</h1><p class="sub">Protect your data and schedule downtime</p></div></div>
+<div class="grid g2">
+<section class="card"><h2>Backups</h2>
+  <form method="post" action="{% url 'administration:backup-settings' %}" novalidate>{% csrf_token %}
+    <div class="split mb-4"><span id="autoLabel">Automatic daily backup</span><label class="toggle"><input type="checkbox" name="backup_auto" aria-labelledby="autoLabel"{% if backup_form.backup_auto.value %} checked{% endif %}><span></span></label></div>
+    <div class="field{% if backup_form.backup_time.errors %} invalid{% endif %}"><label for="{{ backup_form.backup_time.id_for_label }}">Backup time</label>{{ backup_form.backup_time }}{% include "partials/errs.html" with errors=backup_form.backup_time.errors %}</div>
+    <div class="field{% if backup_form.backup_keep_days.errors %} invalid{% endif %}"><label for="{{ backup_form.backup_keep_days.id_for_label }}">Keep backups for (days)</label>{{ backup_form.backup_keep_days }}{% include "partials/errs.html" with errors=backup_form.backup_keep_days.errors %}</div>
+    {% if site.last_auto_backup %}<p class="muted fs-xs mb-3">Last automatic backup: {{ site.last_auto_backup|date:"j M Y, H:i" }}</p>{% endif %}
+    <div class="cluster"><button class="btn" type="submit" formaction="{% url 'administration:backup-create' %}">{% icon "save" %} Back up now</button><button class="btn ghost" type="submit">Save settings</button></div>
+  </form>
+  {% if backups %}<div class="scroll-x mt-4"><table class="backups"><thead><tr><th>Backup</th><th>Size</th><th></th></tr></thead><tbody>
+  {% for b in backups %}<tr><td>{{ b.created|date:"j M Y, H:i" }}<br><small class="muted"><code>{{ b.name }}</code></small></td><td class="nowrap">{{ b.size|filesize }}</td>
+  <td><div class="cluster"><button class="btn ghost" type="button" data-restore data-name="{{ b.name }}" data-when="{{ b.created|date:'j M Y, H:i' }}" data-url="{% url 'administration:backup-restore' b.name %}">Restore</button>
+  <a class="btn ghost" href="{% url 'administration:backup-download' b.name %}" aria-label="Download {{ b.name }}" title="Download">{% icon "download" %}</a>
+  <form method="post" action="{% url 'administration:backup-delete' b.name %}" onsubmit="return confirm('Delete this backup?')">{% csrf_token %}<button class="btn ghost" type="submit" aria-label="Delete {{ b.name }}" title="Delete">{% icon "trash" %}</button></form></div></td></tr>{% endfor %}</tbody></table></div>
+  {% else %}<div class="empty">{% icon "save" %}<h3>No backups yet</h3><p>Create the first one now.</p></div>{% endif %}
+</section>
+
+<section class="card"><h2>Maintenance mode</h2><p class="sub mb-3">Only admins can sign in while this is on.</p>
+  <form method="post" action="{% url 'administration:maintenance-save' %}" novalidate>{% csrf_token %}
+    <div class="split mb-4"><span id="maintLabel">Enable maintenance mode</span><label class="toggle"><input type="checkbox" name="maintenance_mode" aria-labelledby="maintLabel"{% if maint_form.maintenance_mode.value %} checked{% endif %}><span></span></label></div>
+    <div class="field{% if maint_form.maintenance_message.errors %} invalid{% endif %}"><label for="{{ maint_form.maintenance_message.id_for_label }}">Message to users</label>{{ maint_form.maintenance_message }}{% include "partials/errs.html" with errors=maint_form.maintenance_message.errors %}</div>
+    <div class="field{% if maint_form.maintenance_at.errors %} invalid{% endif %}"><label for="{{ maint_form.maintenance_at.id_for_label }}">Scheduled for</label>{{ maint_form.maintenance_at }}
+      <div class="help">Maintenance mode switches on by itself at this time and stays on until you turn it off. Users see a notice beforehand.</div>{% include "partials/errs.html" with errors=maint_form.maintenance_at.errors %}</div>
+    <div class="cluster"><button class="btn ghost" type="submit" formaction="{% url 'administration:maintenance-preview' %}" formtarget="_blank">Preview maintenance page</button><button class="btn" type="submit">Save</button></div>
+  </form>
+</section></div>
+
+<div class="modal-bg" id="restoreModal" role="dialog" aria-modal="true" aria-labelledby="restoreTitle"><div class="modal">
+  <h2 id="restoreTitle">Restore this backup?</h2>
+  <p class="mb-3">This replaces <b>all</b> current data and uploaded files with the backup from <b id="restoreWhen"></b>.</p>
+  <ul class="list-steps mb-3"><li>A safety copy of the current data is made first.</li><li>Everyone is signed out, including you.</li><li>You must be able to sign in with an account that exists in that backup.</li></ul>
+  <form method="post" id="restoreForm">{% csrf_token %}
+    <div class="field"><label for="restoreConfirm">Type <b>RESTORE</b> to confirm</label><input id="restoreConfirm" name="confirm" autocomplete="off" spellcheck="false"></div>
+    <div class="cluster end"><button class="btn ghost" type="button" id="restoreCancel">Cancel</button><button class="btn danger" type="submit" id="restoreGo" disabled>Restore backup</button></div>
+  </form></div></div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/backups.js' %}"></script>{% endblock %}

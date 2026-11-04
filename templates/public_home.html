@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{{ lumen_site.site_name }}{% endblock %}
+{% block body %}
+<header class="pub-h"><div class="logo">{% include "partials/logo_tile.html" %} {{ lumen_site.site_name }}</div>
+<div class="r"><button type="button" data-theme-toggle class="btn ghost sm" aria-label="Toggle dark mode"></button><a class="btn" href="{% url 'accounts:login' %}">Sign in</a></div></header>
+<main id="main">
+<section class="pub-hero"><h1>Learn, teach and manage — all in one place</h1><p>Courses, quizzes, submissions and grades for students, lecturers and administrators.</p>
+<div class="sr"><input id="q" type="search" aria-label="Search courses" placeholder="Search courses, e.g. databases"></div></section>
+<div class="pub-wrap">
+<div class="band"><div class="card stat"><b>{{ stats.courses }}</b><span>Active courses</span></div><div class="card stat"><b>{{ stats.learners }}</b><span>Learners</span></div><div class="card stat"><b>{{ stats.lecturers }}</b><span>Lecturers</span></div><div class="card stat"><b>{{ stats.departments }}</b><span>Departments</span></div></div>
+<h2 id="courses">Course catalog</h2>
+{% if depts %}<div class="chips" id="chips"><button type="button" class="on" data-c="">All</button>{% for d in depts %}<button type="button" data-c="{{ d }}">{{ d }}</button>{% endfor %}</div>{% endif %}
+<div class="grid g3 mb-7" id="grid">{% for c in courses %}
+<div class="card course" data-cat="{{ c.department.name }}" data-name="{{ c.code|lower }} {{ c.title|lower }}"><div class="cover tone-{{ c.tone }}">{{ c.code }}</div><div class="body"><h3>{{ c.title }}</h3>
+<small class="muted">{% for l in c.lecturers.all|slice:":1" %}{{ l.get_full_name|default:l.username }} · {% endfor %}{{ c.semester|default:"No semester" }}</small>
+<div class="meta"><span>{{ c.department|default:"General" }}</span><a class="btn sm ghost" href="{% url 'accounts:login' %}">Sign in to enrol</a></div></div></div>{% endfor %}</div>
+<div class="card empty" id="none" style="display:{% if courses %}none{% else %}flex{% endif %}">{% icon "search" %}<h3>No courses found</h3><p>Try a different search or department.</p></div>
+</div></main>
+<footer class="pub"><span>© {% now "Y" %} {{ lumen_site.site_name }}</span></footer>
+{% endblock %}
+{% block scripts %}<script>
+(function(){var cat="",term="",grid=document.getElementById("grid");
+function f(){var n=0;grid.querySelectorAll(".course").forEach(function(c){var ok=(!cat||c.dataset.cat===cat)&&(!term||c.dataset.name.indexOf(term)>-1);c.style.display=ok?"":"none";if(ok)n++});document.getElementById("none").style.display=n?"none":"flex"}
+document.querySelectorAll("#chips button").forEach(function(b){b.onclick=function(){document.querySelectorAll("#chips button").forEach(function(x){x.classList.remove("on")});b.classList.add("on");cat=b.dataset.c;f()}});
+document.getElementById("q").oninput=function(){term=this.value.trim().toLowerCase();f()};})();
+</script>{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% load lumen static %}
+{% block title %}Submissions · {{ a.title }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{{ a.title }}</h1><p class="sub"><a href="{% url 'assignments:detail' a.pk %}">{{ a.course.code }}</a> · due {{ a.due_at|date:"j M Y, H:i" }}</p></div></div>
+<div class="grid g4 mb-5"><div class="card stat"><b>{{ stats.needs }}</b><span>Need grading</span></div><div class="card stat"><b>{{ stats.graded }}</b><span>Graded</span></div><div class="card stat"><b>{{ stats.missing }}</b><span>Missing</span></div><div class="card stat"><b>{{ stats.late }}</b><span>Late</span></div></div>
+<div class="card"><form method="get" class="flex gap-3 mb-4"><label class="sr-only" for="status">Status</label><select id="status" name="status" class="mw-180" data-autosubmit><option value="">All statuses</option><option value="needs"{% if only == "needs" %} selected{% endif %}>Needs grading</option><option value="graded"{% if only == "graded" %} selected{% endif %}>Graded</option><option value="missing"{% if only == "missing" %} selected{% endif %}>Missing</option><option value="late"{% if only == "late" %} selected{% endif %}>Late</option></select><noscript><button class="btn ghost" type="submit">Filter</button></noscript></form>
+{% if rows %}<div class="scroll-x"><table><thead><tr><th>Student</th><th>Submitted</th><th>File</th><th>Status</th><th class="num">Mark</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td><b>{{ r.student.get_full_name|default:r.student.username }}</b></td>
+<td>{% if r.s %}{{ r.s.submitted_at|date:"j M, H:i" }}{% if r.s.late_days %} <span class="pill bad">{{ r.s.late_days }}d late</span>{% endif %}{% else %}—{% endif %}</td>
+<td>{% if r.s %}<a href="{% url 'assignments:download' r.s.pk %}">Download</a>{% else %}—{% endif %}</td>
+<td>{% if r.s and r.s.status == "graded" %}<span class="pill ok">Graded</span>{% elif r.s %}<span class="pill warn">Needs grading</span>{% elif r.due < now %}<span class="pill bad">Missing</span>{% else %}<span class="pill mute">Not yet</span>{% endif %}</td>
+<td class="num">{% if r.s and r.s.final_mark is not None %}{{ r.s.final_mark|floatformat:"-2" }}{% else %}—{% endif %}</td>
+<td>{% if r.s %}<a class="btn sm{% if r.s.status == 'graded' %} ghost{% endif %}" href="{% url 'assignments:grade' r.s.pk %}">{% if r.s.status == "graded" %}Edit grade{% else %}Grade{% endif %}</a>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>{% else %}<div class="empty">{% icon "users" %}<h3>{% if only %}Nothing matches this filter{% else %}No students enrolled{% endif %}</h3><p>{% if only %}Choose another status.{% else %}Enrol students in the course first.{% endif %}</p></div>{% endif %}</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/dashboard.js' %}"></script>{% endblock %}

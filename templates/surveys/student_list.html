@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Polls & surveys · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Polls & surveys</h1><p class="sub">Short questions from your lecturers</p></div></div>
+{% if rows %}<div class="card scroll-x"><table><thead><tr><th>Title</th><th>Course</th><th>Closes</th><th>Status</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td><b><a href="{% url 'surveys:student-detail' r.survey.pk %}">{{ r.survey.title }}</a></b> <span class="pill mute">{{ r.survey.get_kind_display }}</span></td><td>{{ r.survey.course.code }}</td>
+<td>{% if r.survey.closes_at %}{{ r.survey.closes_at|date:"j M, H:i" }}{% else %}<span class="muted">No end</span>{% endif %}</td>
+<td>{% if r.answered %}<span class="pill ok">Answered</span>{% elif r.state == "open" %}<span class="pill warn">To do</span>{% elif r.state == "closed" %}<span class="pill mute">Closed</span>{% else %}<span class="pill mute">Not open yet</span>{% endif %}</td>
+<td><a class="btn sm ghost" href="{% url 'surveys:student-detail' r.survey.pk %}">{% if r.state == "open" and not r.answered %}Answer{% else %}Open{% endif %}</a></td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="card empty">{% icon "bar-chart" %}<h3>Nothing to answer</h3><p>Polls and surveys from your courses will appear here.</p></div>{% endif %}
+{% endblock %}

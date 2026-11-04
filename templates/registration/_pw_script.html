@@ -1,0 +1,6 @@
+<script>
+(function(){var p=document.getElementById("id_new_password1"),b=document.getElementById("pw-bar");if(!p)return;
+p.addEventListener("input",function(){var v=p.value,t={len:v.length>=10,up:/[A-Z]/.test(v),num:/\d/.test(v),sym:/[^A-Za-z0-9]/.test(v)},n=0;
+document.querySelectorAll("#pw-rules li").forEach(function(l){var o=t[l.dataset.r];l.classList.toggle("ok",o);if(o)n++});
+b.style.width=n*25+"%";b.style.background=n<3?"var(--bad)":n<4?"var(--warn)":"var(--ok)"});})();
+</script>

@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Grade scale · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Grade scale</h1><p class="sub"><a href="{% url 'administration:settings' %}">← System settings</a> · from each percentage upward a student gets that letter and those grade points</p></div></div>
+<form method="post" class="card mw-640" novalidate>{% csrf_token %}{{ formset.management_form }}
+{% if formset.non_form_errors %}<div class="notice error mb-3">{{ formset.non_form_errors|join:" " }}</div>{% endif %}
+<table><thead><tr><th>From (%)</th><th>Letter</th><th>Points</th><th>Delete</th></tr></thead><tbody>
+{% for f in formset %}<tr>{{ f.id }}<td>{{ f.min_percent }}{% for e in f.min_percent.errors %}<div class="err" style="display:block">{{ e }}</div>{% endfor %}</td><td>{{ f.letter }}{% for e in f.letter.errors %}<div class="err" style="display:block">{{ e }}</div>{% endfor %}</td><td>{{ f.points }}{% for e in f.points.errors %}<div class="err" style="display:block">{{ e }}</div>{% endfor %}</td><td>{{ f.DELETE }}</td></tr>{% endfor %}</tbody></table>
+<p class="muted fs-xs mt-3">The lowest row must start at 0%. Leave the two empty rows blank unless you are adding bands. Published results are not changed until a lecturer publishes them again.</p>
+<div class="mt-4"><button class="btn" type="submit">Save grade scale</button></div></form>
+{% endblock %}

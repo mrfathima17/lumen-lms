@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Session expired · {{ lumen_site.site_name }}{% endblock %}
+{% block body %}
+<main class="main" id="main"><div class="card empty mw-480 mx-auto mt-6"><div class="hero-icon">{% icon "timer" %}</div><h1>Session expired</h1><p>For your security you were signed out after a period of inactivity. Please sign in again.</p><a class="btn" href="{% url 'accounts:login' %}">Sign in again</a></div></main>
+{% endblock %}

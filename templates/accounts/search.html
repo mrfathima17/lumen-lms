@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Search · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Search results</h1><p class="sub">{% if q and not too_short %}{{ total }} result{{ total|pluralize }} for “{{ q }}”{% else %}Find courses, materials, activities, forum topics and people{% endif %}</p></div></div>
+<form method="get" action="{% url 'accounts:search' %}" class="flex gap-3 mb-4" role="search"><input class="mw-420" name="q" value="{{ q }}" maxlength="80" aria-label="Search" placeholder="Search…" autocomplete="off"><button class="btn" type="submit">Search</button></form>
+{% if too_short %}<div class="notice">Type at least 2 characters.</div>{% endif %}
+{% if q and not too_short %}
+<nav class="tabs" aria-label="Result types">{% for key, label, n in tabs %}<a class="{% if key == tab %}on{% endif %}" href="{% url 'accounts:search' %}?q={{ q|urlencode }}&amp;tab={{ key }}">{{ label }}{% if key == "all" %} ({{ total }}){% elif n is not None %} ({{ n }}){% endif %}</a>{% endfor %}</nav>
+<div class="card">
+  {% for r in results %}<div class="item"><span class="ico">{% icon r.icon %}</span><div><div class="t"><a href="{{ r.url }}">{{ r.title }}</a></div><div class="m">{{ r.meta }}</div></div></div>
+  {% empty %}<div class="empty">{% icon "search" %}<h3>Nothing found</h3><p>Try a different word, or check the spelling.</p></div>{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

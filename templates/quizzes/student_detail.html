@@ -1,0 +1,38 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{{ quiz.title }} · {{ quiz.course.code }}{% endblock %}
+{% block content %}
+<small class="muted"><a href="{% url 'courses:detail' quiz.course.pk %}">{{ quiz.course.code }}</a> / Quizzes</small>
+<div class="page-header"><div><h1>{{ quiz.title }}</h1><p class="sub">{{ quiz.course.code }} · {{ quiz.course.title }}</p></div></div>
+<div class="grid g2">
+<div>
+  <section class="card mb-4"><h2>Before you begin</h2>
+    {% if quiz.description %}<p class="mt-3">{{ quiz.description|linebreaksbr }}</p>{% endif %}
+    <ul class="list-steps">
+      {% if quiz.time_limit_minutes %}<li>You have <b>{{ quiz.time_limit_minutes }} minutes</b> once you start. The timer cannot be paused.</li>{% else %}<li>There is no time limit.</li>{% endif %}
+      <li>You get <b>{{ quiz.max_attempts }} attempt{{ quiz.max_attempts|pluralize }}</b>.</li>
+      <li>Questions: {{ count }} · Total marks: {{ total_marks|floatformat:"-2" }}</li>
+      <li>Your answers are saved as you go, so you can safely lose your connection for a moment.</li>
+      {% if quiz.time_limit_minutes %}<li>The quiz submits automatically when time runs out. The timer runs on the server.</li>{% endif %}
+    </ul>
+    <div class="mt-4">
+    {% if running %}<a class="btn" href="{% url 'quizzes:attempt' running.pk %}">{% icon "next" %}Resume attempt {{ running.number }}</a>
+    {% elif not open %}<div class="notice">{{ reason }}</div>
+    {% elif attempts_left <= 0 %}<div class="notice">You have used all your attempts.</div>
+    {% else %}<form method="post" action="{% url 'quizzes:start' quiz.pk %}">{% csrf_token %}
+      <label class="check-row mb-3"><input type="checkbox" id="read-ok" onchange="document.getElementById('go').disabled=!this.checked"> I have read the instructions.</label>
+      <button class="btn" id="go" type="submit" disabled>{% icon "timer" %}Start attempt</button></form>{% endif %}
+    </div></section>
+  <section class="card"><h2>Your attempts</h2>
+    {% for a in attempts %}<p class="split mt-3"><span>Attempt {{ a.number }} · {{ a.started_at|date:"j M, H:i" }}</span>
+      <span>{% if a.status == "in_progress" %}<span class="pill warn">In progress</span>{% elif a.status == "graded" %}<span class="pill ok">{{ a.score|floatformat:"-2" }} / {{ total_marks|floatformat:"-2" }}</span>{% else %}<span class="pill mute">Waiting for marking</span>{% endif %}
+      {% if a.status != "in_progress" %} <a class="btn sm ghost" href="{% url 'quizzes:result' a.pk %}">View</a>{% endif %}</span></p>
+    {% empty %}<p class="muted mt-3">You have not attempted this quiz yet.</p>{% endfor %}</section>
+</div>
+<div class="card self-start"><h2>Summary</h2>
+  <dl class="kv mt-3"><dt>Opens</dt><dd>{% if quiz.opens_at %}{{ quiz.opens_at|date:"j M, g:i A" }}{% else %}Open now{% endif %}</dd>
+  <dt>Closes</dt><dd>{% if quiz.closes_at %}{{ quiz.closes_at|date:"j M, g:i A" }}{% else %}No closing date{% endif %}</dd>
+  <dt>Attempts</dt><dd>{{ used }} of {{ quiz.max_attempts }} used</dd></dl>
+  {% if previous %}<hr class="sep"><h2>Previous quizzes</h2><table class="mt-3"><thead><tr><th>Quiz</th><th class="num">Best score</th></tr></thead><tbody>
+    {% for p in previous %}<tr><td><a href="{% url 'quizzes:student-detail' p.quiz.pk %}">{{ p.quiz.title }}</a></td><td class="num">{{ p.score|floatformat:"-2" }} / {{ p.total|floatformat:"-2" }}</td></tr>{% endfor %}</tbody></table>{% endif %}</div>
+</div>
+{% endblock %}

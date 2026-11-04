@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Roles & permissions · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Roles &amp; permissions</h1><p class="sub">What each kind of account can do. Read-only: these rules are built into the system.</p></div></div>
+<div class="card"><div class="scroll-x"><table><thead><tr><th>Area</th><th>What</th>{% for k, label in roles %}<th>{{ label }}</th>{% endfor %}</tr></thead><tbody>
+{% for area, what, s, l, a in matrix %}<tr><td class="muted">{{ area }}</td><td>{{ what }}</td>
+<td>{% if s is True %}<span class="pill ok">Yes</span>{% elif s is False %}<span class="pill mute">No</span>{% else %}<span class="pill warn">{{ s }}</span>{% endif %}</td>
+<td>{% if l is True %}<span class="pill ok">Yes</span>{% elif l is False %}<span class="pill mute">No</span>{% else %}<span class="pill warn">{{ l }}</span>{% endif %}</td>
+<td>{% if a is True %}<span class="pill ok">Yes</span>{% elif a is False %}<span class="pill mute">No</span>{% else %}<span class="pill warn">{{ a }}</span>{% endif %}</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Announcements · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Announcements</h1><p class="sub">News from your lecturers and the university</p></div>{% if can_post %}<a class="btn" href="{% url 'messaging:announcement-new' %}">{% icon "plus" %} New announcement</a>{% endif %}</div>
+{% if page %}<div class="card">{% for a in page %}<div class="item"><span class="ico">{% icon "megaphone" %}</span>
+  <div class="grow"><div class="t">{{ a.title }} <span class="pill {% if a.course %}mute{% else %}warn{% endif %}">{% if a.course %}Course{% else %}University{% endif %}</span>{% if a.is_draft %} <span class="pill mute">Draft</span>{% endif %}{% if a.priority == "urgent" %} <span class="pill bad">Urgent</span>{% elif a.priority == "important" %} <span class="pill warn">Important</span>{% endif %}{% if a.pinned %} <span class="pill ok">Pinned</span>{% endif %}</div>
+  <div class="m">{{ a.author.get_full_name|default:a.author.username }}{% if a.course %} · {{ a.course.code }}{% endif %} · {{ a.created_at|timesince }} ago</div>
+  <p class="mt-2">{{ a.body|linebreaksbr }}</p></div>
+  {% if a.author_id == user.pk or user.role == "admin" %}<a class="btn sm ghost" href="{% url 'messaging:announcement-edit' a.pk %}">Edit</a><form method="post" action="{% url 'messaging:announcement-delete' a.pk %}" onsubmit="return confirm('Delete this announcement?')">{% csrf_token %}<button class="btn sm ghost" type="submit" aria-label="Delete {{ a.title }}">{% icon "trash" %}</button></form>{% endif %}</div>{% endfor %}</div>
+{% else %}<div class="card empty">{% icon "megaphone" %}<h3>No announcements</h3><p>Announcements for your courses appear here.</p></div>{% endif %}
+{% if page.has_other_pages %}<div class="cluster mt-4">{% if page.has_previous %}<a class="btn sm ghost" href="?page={{ page.previous_page_number }}">Newer</a>{% endif %}<span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a class="btn sm ghost" href="?page={{ page.next_page_number }}">Older</a>{% endif %}</div>{% endif %}
+{% endblock %}

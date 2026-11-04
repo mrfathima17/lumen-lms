@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{% if a %}Edit assignment{% else %}New assignment{% endif %} · {{ course.code }}{% endblock %}
+{% block content %}
+<small class="muted"><a href="{% url 'courses:detail' course.pk %}">{{ course.code }}</a> / Assignments</small>
+<div class="page-header"><div><h1>{% if a %}Edit assignment{% else %}Create assignment{% endif %}</h1><p class="sub">{{ course.code }} · {{ course.title }}</p></div></div>
+<form method="post" novalidate>{% csrf_token %}
+<div class="grid g2">
+  <div class="card">{% include "partials/field.html" with field=form.title %}{% include "partials/field.html" with field=form.topic %}{% include "partials/field.html" with field=form.description %}{% include "partials/field.html" with field=form.due_at %}</div>
+  <div>
+    <div class="card mb-4"><h2>Grading</h2>{% include "partials/field.html" with field=form.max_mark %}{% include "partials/field.html" with field=form.allowed_types %}{% include "partials/field.html" with field=form.max_file_mb %}</div>
+    <div class="card"><h2>Options</h2>
+      <div class="split mt-3"><span>Visible to students</span><label class="toggle"><input type="checkbox" name="{{ form.is_visible.html_name }}" id="{{ form.is_visible.id_for_label }}"{% if form.is_visible.value %} checked{% endif %}><span></span></label></div>
+      <div class="split mt-3 mb-4"><span>Allow late submissions</span><label class="toggle"><input type="checkbox" name="{{ form.allow_late.html_name }}" id="{{ form.allow_late.id_for_label }}"{% if form.allow_late.value %} checked{% endif %}><span></span></label></div>
+      <p class="muted fs-xs mb-3">{{ form.allow_late.help_text }}</p>
+      <div class="cluster"><button class="btn" type="submit">{% if a %}Save assignment{% else %}Publish assignment{% endif %}</button><a class="btn ghost" href="{% url 'courses:detail' course.pk %}">Cancel</a></div></div>
+  </div></div></form>
+{% endblock %}

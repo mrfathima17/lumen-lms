@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Notifications · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Notifications</h1><p class="sub">{% if unread_notifications %}{{ unread_notifications }} unread{% else %}You are all caught up{% endif %} · messages, announcements, forum replies and grades</p></div>
+<div class="cluster"><form method="post" action="{% url 'messaging:read-all' %}">{% csrf_token %}<button class="btn ghost" type="submit">{% icon "check" %} Mark all as read</button></form><a class="btn ghost" href="{% url 'accounts:profile' %}">Notification settings</a></div></div>
+<nav class="tabs" aria-label="Filter notifications">{% for key, label in tabs %}<a href="?filter={{ key }}"{% if only == key %} class="on" aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}</nav>
+<div class="card notif">{% for n in page %}<div class="item{% if not n.read_at %} unread{% endif %}"><span class="ico">{% if n.kind == "message" %}{% icon "message" %}{% elif n.kind == "announcement" %}{% icon "megaphone" %}{% elif n.kind == "forum" %}{% icon "messages" %}{% elif n.kind == "grade" %}{% icon "graduation" %}{% else %}{% icon "bell" %}{% endif %}</span>
+<div class="grow"><div class="t"><a href="{% url 'messaging:open' n.pk %}">{{ n.text }}</a></div></div><span class="m ml-auto nowrap">{{ n.created_at|timesince }} ago</span>{% if not n.read_at %}<span class="dot" aria-label="Unread"></span>{% endif %}</div>
+{% empty %}<div class="empty">{% icon "bell" %}<h3>All caught up</h3><p>Nothing here.</p></div>{% endfor %}
+{% if page.has_other_pages %}<div class="cluster mt-4">{% if page.has_previous %}<a class="btn sm ghost" href="?filter={{ only }}&page={{ page.previous_page_number }}">Newer</a>{% endif %}<span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a class="btn sm ghost" href="?filter={{ only }}&page={{ page.next_page_number }}">Older</a>{% endif %}</div>{% endif %}</div>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% load lumen %}<small class="muted"><a href="{% url 'courses:my-courses' %}">{% if user.role == "student" %}My courses{% else %}Courses{% endif %}</a> / {{ course.code }}</small>
+<div class="page-header"><div>
+  <h1>{{ course.title }}{% if not course.is_visible %} <span class="pill warn">Hidden from students</span>{% endif %}</h1>
+  <p class="sub">{% if lecturers %}{% for l in lecturers %}<a href="{% url 'accounts:person' l.pk %}">{{ l.get_full_name|default:l.username }}</a>{% if not forloop.last %}, {% endif %}{% endfor %} · {% endif %}{{ course.department|default:"No department" }}{% if course.semester %} · {{ course.semester }}{% endif %} · {{ course.credits }} credits</p></div>
+  {% if user.role == "admin" %}<div class="cluster"><a class="btn ghost" href="{% url 'courses:admin-course-edit' course.pk %}">{% icon "settings" %}Edit course</a></div>{% endif %}</div>
+{% include "courses/_tabs.html" %}

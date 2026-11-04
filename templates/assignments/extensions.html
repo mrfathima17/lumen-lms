@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Extensions · {{ a.title }}{% endblock %}
+{% block content %}
+<small class="muted"><a href="{% url 'courses:detail' a.course.pk %}">{{ a.course.code }}</a> / <a href="{% url 'assignments:detail' a.pk %}">{{ a.title }}</a></small>
+<div class="page-header"><div><h1>Deadline extensions</h1><p class="sub">Give an individual student more time · normal deadline {{ a.due_at|date:"j M Y, H:i" }}</p></div></div>
+<div class="grid g2">
+  <section class="card"><h2>Active extensions</h2>
+    {% if items %}<div class="scroll-x"><table class="mt-3"><thead><tr><th>Student</th><th>Original due</th><th>New due</th><th></th></tr></thead><tbody>
+    {% for e in items %}<tr><td><b>{{ e.student.get_full_name|default:e.student.username }}</b></td><td>{{ a.due_at|date:"j M, H:i" }}</td><td><span class="pill ok">{{ e.due_at|date:"j M, H:i" }}</span></td>
+      <td class="end"><form method="post" action="{% url 'assignments:extension-delete' a.pk e.pk %}" onsubmit="return confirm('Remove this extension?')">{% csrf_token %}<button class="btn sm danger" type="submit">Remove</button></form></td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<div class="empty">{% icon "timer" %}<p>No extensions yet.</p></div>{% endif %}</section>
+  <section class="card"><h2>Add extension</h2><form method="post" class="mt-3" novalidate>{% csrf_token %}
+    {% for field in form %}{% include "partials/field.html" %}{% endfor %}<button class="btn" type="submit">Save extension</button></form></section>
+</div>
+{% endblock %}

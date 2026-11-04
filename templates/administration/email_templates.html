@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Email templates · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Email templates</h1><p class="sub">The text of the emails Lumen sends to people</p></div></div>
+<div class="card"><table><thead><tr><th>Email</th><th>Subject</th><th>Text</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td><b>{{ r.label }}</b></td><td>{{ r.subject }}</td><td>{% if r.custom %}<span class="pill warn">Customised</span>{% else %}<span class="pill mute">Default</span>{% endif %}</td><td><a class="btn sm ghost" href="{% url 'administration:email-template' r.key %}">Edit</a></td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

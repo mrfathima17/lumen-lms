@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{% if quiz %}Edit quiz{% else %}New quiz{% endif %} · {{ course.code }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{% if quiz %}Edit quiz{% else %}New quiz{% endif %}</h1><p class="sub"><a href="{% url 'courses:detail' course.pk %}">{{ course.code }} · {{ course.title }}</a></p></div></div>
+<div class="card mw-640"><form method="post" novalidate>{% csrf_token %}
+  {% for field in form %}{% include "partials/field.html" %}{% endfor %}
+  <div class="cluster"><button class="btn" type="submit">Save quiz</button><a class="btn ghost" href="{% if quiz %}{% url 'quizzes:editor' quiz.pk %}{% else %}{% url 'courses:detail' course.pk %}{% endif %}">Cancel</a></div></form></div>
+{% endblock %}

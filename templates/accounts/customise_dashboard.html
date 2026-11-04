@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Customise dashboard · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Customise dashboard</h1><p class="sub">Show, hide and reorder the blocks on your dashboard. The layout is saved with your account.</p></div>
+<a class="btn ghost" href="{% url 'accounts:student-dashboard' %}">View my dashboard →</a></div>
+<form method="post" class="card mw-640" id="lay">{% csrf_token %}
+<h2>Blocks</h2>
+{% for b in blocks %}<div class="blk{% if not b.shown %} off{% endif %}"><input type="hidden" name="order" value="{{ b.id }}">
+<label class="grow check-row" for="show-{{ b.id }}"><input id="show-{{ b.id }}" type="checkbox" name="show" value="{{ b.id }}"{% if b.shown %} checked{% endif %}> <span><b>{{ b.name }}</b><br><span class="muted fs-xs">{{ b.desc }}{% if b.full %} · full width{% else %} · half width{% endif %}</span></span></label>
+<button class="btn sm ghost" type="submit" name="move" value="{{ b.id }}:up" aria-label="Move {{ b.name }} up"{% if forloop.first %} disabled{% endif %}>↑</button>
+<button class="btn sm ghost" type="submit" name="move" value="{{ b.id }}:down" aria-label="Move {{ b.name }} down"{% if forloop.last %} disabled{% endif %}>↓</button></div>{% endfor %}
+<div class="cluster mt-4"><button class="btn" type="submit">Save layout</button><button class="btn ghost" type="submit" name="reset" value="1" formnovalidate onclick="return confirm('Go back to the default layout?')">Reset to default</button></div>
+<p class="muted fs-xs mt-3">The arrows move a block straight away. Half-width blocks sit side by side when they are next to each other.</p>
+</form>
+{% endblock %}

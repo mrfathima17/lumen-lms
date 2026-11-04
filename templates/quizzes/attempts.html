@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Attempts · {{ quiz.title }}{% endblock %}
+{% block content %}
+<small class="muted"><a href="{% url 'courses:detail' quiz.course.pk %}">{{ quiz.course.code }}</a> / {{ quiz.title }}</small>
+<div class="split"><div><h1>{{ quiz.title }} — Attempts</h1><p class="sub">Out of {{ total|floatformat:"-2" }}{% if quiz.time_limit_minutes %} · {{ quiz.time_limit_minutes }} minutes{% endif %}</p></div>
+  <div class="cluster">{% if stats.waiting %}<a class="btn ghost" href="{% url 'quizzes:marking' quiz.pk %}">{% icon "edit" %} Manual grading ({{ stats.waiting }})</a>{% endif %}<a class="btn ghost" href="{% url 'quizzes:editor' quiz.pk %}">{% icon "edit" %} Edit quiz</a></div></div>
+<div class="grid g4 mb-5 mt-4"><div class="card stat"><b>{{ stats.students }} / {{ stats.enrolled }}</b><span>Attempted</span></div><div class="card stat"><b>{% if stats.average is None %}—{% else %}{{ stats.average }}%{% endif %}</b><span>Average</span></div><div class="card stat"><b>{% if stats.highest is None %}—{% else %}{{ stats.highest }}%{% endif %}</b><span>Highest</span></div><div class="card stat"><b>{{ stats.needs }}</b><span>Need marking</span></div></div>
+<div class="card">{% if attempts %}<div class="scroll-x"><table><thead><tr><th>Student</th><th>Attempt</th><th>Started</th><th>Time taken</th><th class="num">Score</th><th>Status</th><th></th></tr></thead><tbody>
+{% for a in attempts %}<tr><td><b>{{ a.student.get_full_name|default:a.student.username }}</b></td><td>{{ a.number }}</td><td>{{ a.started_at|date:"j M, H:i" }}</td>
+<td>{% if a.submitted_at %}{{ a.taken_label }}{% else %}—{% endif %}</td>
+<td class="num">{% if a.score is not None and a.status != "in_progress" %}{{ a.score|floatformat:"-2" }} / {{ total|floatformat:"-2" }}{% else %}—{% endif %}</td>
+<td>{% if a.status == "in_progress" %}<span class="pill warn">In progress</span>{% elif a.status == "graded" %}<span class="pill ok">Finished</span>{% else %}<span class="pill warn">Needs marking</span>{% endif %}</td>
+<td><div class="cluster">{% if a.status != "in_progress" %}<a class="btn sm{% if a.status == 'graded' %} ghost{% endif %}" href="{% url 'quizzes:grade' a.pk %}">{% if a.status == "graded" %}Review{% else %}Mark{% endif %}</a>
+<form method="post" action="{% url 'quizzes:regrade' a.pk %}">{% csrf_token %}<button class="btn sm ghost" type="submit">Regrade</button></form>{% endif %}
+<form method="post" action="{% url 'quizzes:reset' a.pk %}" onsubmit="return confirm('Remove this attempt? The student will be able to try again.')">{% csrf_token %}<button class="btn sm danger" type="submit">Reset</button></form></div></td></tr>{% endfor %}
+</tbody></table></div>{% else %}<div class="empty">{% icon "users" %}<h3>No attempts yet</h3><p>Attempts appear here once students start the quiz.</p></div>{% endif %}</div>
+{% endblock %}

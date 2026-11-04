@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{{ survey.title }} · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{{ survey.title }}</h1><p class="sub"><a href="{% url 'surveys:manage-list' %}">← Polls & surveys</a> · {{ survey.course.code }} · {{ survey.get_kind_display }}
+ {% if not survey.is_visible %}<span class="pill warn">Draft: students cannot see it</span>{% elif state == "open" %}<span class="pill ok">Open</span>{% elif state == "closed" %}<span class="pill mute">Closed</span>{% else %}<span class="pill mute">Scheduled</span>{% endif %}</p></div>
+<div class="cluster"><a class="btn ghost" href="{% url 'surveys:edit' survey.pk %}">{% icon "settings" %}Settings</a><a class="btn ghost" href="{% url 'surveys:results' survey.pk %}">{% icon "bar-chart" %}Results</a>
+{% if not locked and not survey.kind == "poll" or not locked and not questions %}<a class="btn" href="{% url 'surveys:question-new' survey.pk %}">{% icon "plus" %}Add question</a>{% endif %}</div></div>
+{% if locked %}<div class="card mb-4">{% icon "lock" %} Students have answered, so the questions are locked.</div>{% endif %}
+<div class="grid g2"><div>
+{% for q in questions %}<section class="card mb-4"><div class="split"><span class="pill mute">Q{{ forloop.counter }}</span><span class="muted fs-xs">{{ q.get_kind_display }}{% if not q.required %} · optional{% endif %}</span></div>
+<p class="mt-3 fw-semi">{{ q.text }}</p>{% if q.choice_list %}<ul class="plain mt-2 muted">{% for c in q.choice_list %}<li>○ {{ c }}</li>{% endfor %}</ul>{% endif %}
+{% if not locked %}<div class="cluster mt-3"><a class="btn sm ghost" href="{% url 'surveys:question-edit' q.pk %}">Edit</a>
+<form method="post" action="{% url 'surveys:question-delete' q.pk %}" class="inline" onsubmit="return confirm('Remove this question?')">{% csrf_token %}<button class="btn sm ghost" type="submit">Remove</button></form></div>{% endif %}</section>
+{% empty %}<div class="card empty">{% icon "clipboard" %}<h3>No questions yet</h3><p>Add a question, then switch the survey on in Settings.</p></div>{% endfor %}
+{% if not locked and not survey.kind == "poll" or not locked and not questions %}<a class="dropzone compact" href="{% url 'surveys:question-new' survey.pk %}">{% icon "plus" %} Add question</a>{% endif %}</div>
+<div class="card self-start"><h2>Settings</h2><p class="sub mb-4">{{ questions|length }} question{{ questions|length|pluralize }}</p>
+<dl class="kv"><dt class="muted">Opens</dt><dd>{{ survey.opens_at|date:"j M Y, H:i"|default:"Immediately" }}</dd><dt class="muted">Closes</dt><dd>{{ survey.closes_at|date:"j M Y, H:i"|default:"No end date" }}</dd><dt class="muted">Anonymous</dt><dd>{{ survey.anonymous|yesno:"Yes,No" }}</dd><dt class="muted">Visible</dt><dd>{{ survey.is_visible|yesno:"Yes,No" }}</dd></dl>
+<div class="cluster mt-4"><a class="btn ghost sm" href="{% url 'surveys:edit' survey.pk %}">Change settings</a><a class="btn ghost sm" href="{% url 'surveys:results' survey.pk %}">View results</a></div></div></div>
+<form method="post" action="{% url 'surveys:delete' survey.pk %}" class="mt-5" onsubmit="return confirm('Delete this and all its answers?')">{% csrf_token %}<button class="btn ghost" type="submit">{% icon "trash" %}Delete</button></form>
+{% endblock %}

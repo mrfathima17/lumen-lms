@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}System settings · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>System settings</h1><p class="sub">Rules that apply across the whole site</p></div><a class="btn ghost" href="{% url 'administration:grade-scale' %}">{% icon "graduation" %} Grade scale</a></div>
+<form method="post" novalidate>{% csrf_token %}
+{% if form.errors %}<div class="notice error mb-4" role="alert">Please fix the highlighted fields.</div>{% endif %}
+<div class="grid g2">
+<div>
+<section class="card mb-4"><h2>Site</h2><p class="sub mb-3">Logo, colours and the login background are in <a href="{% url 'administration:theme' %}">Theme &amp; branding</a>.</p>{% include "partials/field.html" with field=form.site_name %}{% include "partials/field.html" with field=form.support_email %}</section>
+<section class="card mb-4"><h2>Password policy</h2>{% include "partials/field.html" with field=form.password_min_length %}{% include "partials/field.html" with field=form.password_require_upper %}{% include "partials/field.html" with field=form.password_require_number %}{% include "partials/field.html" with field=form.password_require_symbol %}<p class="sub fs-xs">Applies when someone sets or changes a password. Existing passwords keep working.</p></section>
+<section class="card mb-4"><h2>Coursework &amp; results</h2>{% include "partials/field.html" with field=form.late_penalty_percent_per_day %}{% include "partials/field.html" with field=form.quiz_review_policy %}{% include "partials/field.html" with field=form.attendance_warning_percent %}</section>
+</div>
+<div>
+<section class="card mb-4"><h2>Security &amp; storage</h2>{% include "partials/field.html" with field=form.two_factor_policy %}{% include "partials/field.html" with field=form.private_files_quota_mb %}{% include "partials/field.html" with field=form.audit_log_retention_months %}</section>
+<section class="card mb-4"><h2>Maintenance</h2>{% include "partials/field.html" with field=form.maintenance_mode %}{% include "partials/field.html" with field=form.maintenance_message %}<p class="sub fs-xs">Scheduling a maintenance window is on the <a href="{% url 'administration:backups' %}">Backup &amp; maintenance</a> page.</p></section>
+</div></div>
+<button class="btn" type="submit">Save settings</button>
+</form>
+{% endblock %}

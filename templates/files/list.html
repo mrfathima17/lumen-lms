@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Private files · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Private files</h1><p class="sub">Only you can see these · {{ usage.used|filesize }} of {{ usage.quota|filesize }} used</p></div>
+<div class="cluster"><button class="btn" type="button" onclick="var d=document.getElementById('upload');d.open=true;d.scrollIntoView({block:'nearest'})">{% icon "upload" %} Upload</button></div></div>
+<div class="progress mw-360 tuck mb-5" role="progressbar" aria-valuenow="{{ usage.percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Storage used"><i class="{% if usage.near_full %}bg-bad{% endif %}" style="width:{{ usage.percent }}%"></i></div>
+{% if usage.near_full %}<div class="notice mb-4">You are nearly out of space. Delete files you no longer need.</div>{% endif %}
+<details id="upload" class="card mb-4"{% if form.errors %} open{% endif %}><summary><b>Upload a file</b></summary>
+<form method="post" action="{% url 'files:upload' %}" enctype="multipart/form-data" novalidate class="mt-3">{% csrf_token %}
+{% for field in form %}{% include "partials/field.html" %}{% endfor %}
+<p class="muted fs-xs mt-2">Up to 20 MB per file. Allowed: documents, slides, spreadsheets, images, code, zip.</p>
+<div class="mt-3"><button class="btn" type="submit">{% icon "upload" %} Upload</button></div></form></details>
+<div class="card scroll-x">{% if files %}<table><thead><tr><th>Name</th><th>Size</th><th>Modified</th><th></th></tr></thead><tbody>
+{% for f in files %}<tr><td>{% if f.name|lower|slice:"-4:" == ".zip" %}{% icon "archive" %}{% else %}{% icon "file-text" %}{% endif %} <b>{{ f.name }}</b></td><td>{{ f.size|filesize }}</td><td>{{ f.created_at|date:"j M" }}</td>
+<td><div class="cluster end"><a class="btn sm ghost" href="{% url 'files:download' f.pk %}">Download</a>
+<form method="post" action="{% url 'files:delete' f.pk %}" onsubmit="return confirm('Delete this file permanently?')">{% csrf_token %}<button class="btn sm danger" type="submit" aria-label="Delete {{ f.name }}">Delete</button></form></div></td></tr>{% endfor %}</tbody></table>
+{% else %}<div class="empty">{% icon "folder" %}<h3>No files yet</h3><p>Upload notes, drafts or anything you want to keep here.</p></div>{% endif %}</div>
+{% endblock %}

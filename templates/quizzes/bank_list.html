@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{{ course.code }} question bank · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{{ course.code }} question bank</h1><p class="sub"><a href="{% url 'quizzes:bank-list-all' %}">← All courses</a> · {{ total }} question{{ total|pluralize }}</p></div>
+<div class="cluster"><a class="btn ghost" href="{% url 'quizzes:bank-import' course.pk %}">{% icon "upload" %}Import CSV</a><a class="btn ghost" href="{% url 'quizzes:bank-export' course.pk %}">{% icon "download" %}Export</a><a class="btn" href="{% url 'quizzes:bank-new' course.pk %}">{% icon "plus" %}New question</a></div></div>
+<div class="card">
+<form method="get" class="flex gap-3 mb-4 flex-wrap"><input class="mw-280" type="search" name="q" value="{{ term }}" placeholder="Search questions" aria-label="Search">
+<select name="category" aria-label="Category"><option value="">All categories</option>{% for c in categories %}<option value="{{ c }}"{% if c == cat %} selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+<select name="kind" aria-label="Type"><option value="">All types</option>{% for k, label in kinds %}<option value="{{ k }}"{% if k == kind %} selected{% endif %}>{{ label }}</option>{% endfor %}</select><button class="btn ghost" type="submit">Filter</button></form>
+{% if questions %}
+<form method="post" action="{% url 'quizzes:bank-add-to-quiz' course.pk %}">{% csrf_token %}
+<div class="scroll-x"><table><thead><tr><th><span class="sr-only">Pick</span></th><th>Question</th><th>Type</th><th>Category</th><th>Marks</th><th>Used in</th><th></th></tr></thead><tbody>
+{% for q in questions %}<tr><td><input type="checkbox" name="pick" value="{{ q.pk }}" aria-label="Pick question {{ forloop.counter }}"></td><td>{{ q.text|truncatechars:110 }}</td><td>{{ q.get_kind_display }}</td><td>{{ q.category|default:"—" }}</td><td>{{ q.marks|floatformat:"-2" }}</td><td>{{ q.used_in|default:"—" }}</td>
+<td><div class="cluster end"><a class="btn sm ghost" href="{% url 'quizzes:bank-edit' q.pk %}">Edit</a><button class="btn sm danger" type="submit" formaction="{% url 'quizzes:bank-delete' q.pk %}" onclick="return confirm('Remove this question from the bank?')">Delete</button></div></td></tr>{% endfor %}</tbody></table></div>
+<div class="mt-4 flex gap-3 flex-wrap"><select name="quiz" aria-label="Quiz"><option value="">Add selected to quiz…</option>{% for z in quizzes %}<option value="{{ z.pk }}">{{ z.title }}</option>{% endfor %}</select><button class="btn" type="submit">Add selected to quiz</button>{% if not quizzes %}<span class="muted fs-xs">No quiz here can take new questions yet.</span>{% endif %}</div></form></div>
+{% else %}<div class="empty mt-4">{% icon "archive" %}<h3>{% if total %}No question matches{% else %}The bank is empty{% endif %}</h3><p>{% if total %}Try clearing the filters.{% else %}Add questions here, import a CSV, or press "To bank" on a quiz question.{% endif %}</p></div></div>{% endif %}
+{% endblock %}

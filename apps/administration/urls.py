@@ -1,0 +1,52 @@
+from django.urls import path
+
+from . import views, views_2c, views_ops
+
+app_name = "administration"
+
+# Everything lives under /admin-panel/, so the network rule for the admin scope covers it.
+urlpatterns = [
+    path("admin-panel/users/", views.users, name="users"),
+    path("admin-panel/users/export/", views.users_export, name="users-export"),
+    path("admin-panel/users/new/", views.user_new, name="user-new"),
+    path("admin-panel/users/<int:user_id>/", views.user_edit, name="user-edit"),
+    path("admin-panel/users/<int:user_id>/reset-password/", views.user_reset_password, name="user-reset"),
+    path("admin-panel/users/<int:user_id>/reset-two-factor/", views.user_two_factor_reset, name="user-two-factor-reset"),
+    path("admin-panel/users/<int:user_id>/toggle-active/", views.user_toggle_active, name="user-toggle"),
+    path("admin-panel/import/", views.import_users, name="import"),
+    path("admin-panel/import/confirm/", views.import_confirm, name="import-confirm"),
+    path("admin-panel/import/errors/", views.import_errors, name="import-errors"),
+    path("admin-panel/import/result/", views.import_result, name="import-result"),
+    path("admin-panel/audit-log/", views.audit_log, name="audit"),
+    path("admin-panel/audit-log/export/", views.audit_export, name="audit-export"),
+    path("admin-panel/access/", views.access, name="access"),
+    path("admin-panel/access/<int:rule_id>/toggle/", views.rule_toggle, name="rule-toggle"),
+    path("admin-panel/access/<int:rule_id>/delete/", views.rule_delete, name="rule-delete"),
+    path("admin-panel/settings/", views.system_settings, name="settings"),
+    path("admin-panel/settings/grade-scale/", views.grade_scale, name="grade-scale"),
+    path("admin-panel/theme/", views.theme, name="theme"),
+    path("admin-panel/email-templates/", views.email_template_list, name="email-templates"),
+    path("admin-panel/email-templates/<str:key>/", views.email_template_edit, name="email-template"),
+    path("admin-panel/reports/", views_ops.reports_page, name="reports"),
+    path("admin-panel/reports/export/", views_ops.reports_export, name="reports-export"),
+    path("admin-panel/sessions/", views_ops.sessions_page, name="sessions"),
+    path("admin-panel/sessions/end/", views_ops.session_end, name="session-end"),
+    path("admin-panel/sessions/user/<int:user_id>/end/", views_ops.sessions_end_user, name="sessions-end-user"),
+    path("admin-panel/backups/", views_ops.backups_page, name="backups"),
+    path("admin-panel/backups/create/", views_ops.backup_create, name="backup-create"),
+    path("admin-panel/backups/settings/", views_ops.backup_settings, name="backup-settings"),
+    path("admin-panel/backups/<str:name>/restore/", views_ops.backup_restore, name="backup-restore"),
+    path("admin-panel/maintenance/save/", views_ops.maintenance_save, name="maintenance-save"),
+    path("admin-panel/maintenance/preview/", views_ops.maintenance_preview, name="maintenance-preview"),
+    path("admin-panel/backups/<str:name>/download/", views_ops.backup_download, name="backup-download"),
+    path("admin-panel/backups/<str:name>/delete/", views_ops.backup_delete, name="backup-delete"),
+    path("admin-panel/roles/", views_ops.roles_page, name="roles"),
+    path("admin-panel/modules/", views_2c.modules_page, name="modules"),
+    path("admin-panel/profile-fields/", views_2c.profile_fields, name="profile-fields"),
+    path("admin-panel/profile-fields/<int:field_id>/", views_2c.profile_field_edit, name="profile-field"),
+    path("admin-panel/profile-fields/<int:field_id>/delete/", views_2c.profile_field_delete, name="profile-field-delete"),
+    path("admin-panel/activity/", views_2c.activity_index, name="activity"),
+    path("admin-panel/users/<int:user_id>/activity/", views_2c.user_activity, name="user-activity"),
+    path("admin-panel/bulk-enrolment/", views_2c.bulk_enrolment, name="bulk-enrolment"),
+    path("admin-panel/bulk-enrolment/remove/", views_2c.bulk_enrolment_remove, name="bulk-enrolment-remove"),
+]

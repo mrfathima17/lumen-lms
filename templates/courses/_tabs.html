@@ -1,0 +1,9 @@
+{% load lumen %}<nav class="tabs" aria-label="Course sections">
+  <a href="{% url 'courses:detail' course.pk %}"{% if tab == "content" %} class="on" aria-current="page"{% endif %}>Content</a>
+  <a href="{% url 'courses:participants' course.pk %}"{% if tab == "participants" %} class="on" aria-current="page"{% endif %}>Participants</a>
+  {% if user.role == "student" %}<a href="{% url 'grading:my-course-grades' course.pk %}"{% if tab == "grades" %} class="on" aria-current="page"{% endif %}>Grades</a>
+  {% elif manage %}<a href="{% url 'grading:gradebook' course.pk %}">Grades</a>{% endif %}
+  {% if manage %}<a href="{% url 'courses:reports' course.pk %}"{% if tab == "reports" %} class="on" aria-current="page"{% endif %}>Reports</a>
+  <a href="{% url 'courses:settings' course.pk %}"{% if tab == "settings" %} class="on" aria-current="page"{% endif %}>Settings</a>{% endif %}
+  {% if "forums" not in disabled_modules %}<a href="{% url 'messaging:forum' course.pk %}">Forum</a>{% endif %}
+</nav>

@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Certificates · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Certificates &amp; badges</h1><p class="sub">Awarded when you complete a course. Anyone can check a certificate's code on the verify page.</p></div></div>
+{% if certs or pending %}<div class="grid g3">
+{% for c in certs %}<section class="card text-center"><div class="hero-icon">{% icon "award" %}</div><span class="pill mute">{{ c.course_code }}</span><h2 class="mt-2 mb-1">{{ c.course_title }}</h2>{% if not c.is_valid %}<span class="pill bad">Revoked</span>{% endif %}
+<p class="sub mb-4">Completed {{ c.issued_at|date:"j M Y" }} · <code>{{ c.code }}</code></p>
+<a class="btn sm" href="{% url 'completion:pdf' c.code %}">{% icon "download" %} Download PDF</a> <a class="btn sm ghost" href="{% url 'completion:verify' c.code %}">Verify</a></section>{% endfor %}
+{% for p in pending %}<section class="card text-center"><div class="hero-icon">{% icon "lock" %}</div><h2 class="mt-2 mb-1">{{ p.course.title }}</h2><p class="sub mb-4">Complete the course to unlock</p>
+<a class="pill warn" href="{% url 'completion:mine-course' p.course.pk %}">In progress · {{ p.percent }}%</a></section>{% endfor %}
+</div>
+{% else %}<div class="card empty">{% icon "award" %}<h3>No certificates yet</h3><p>Finish a course's completion rules and your certificate appears here. <a href="{% url 'completion:mine' %}">See your progress</a>.</p></div>{% endif %}
+{% endblock %}

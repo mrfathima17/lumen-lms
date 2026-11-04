@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}New session · {{ course.code }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>New attendance session</h1><p class="sub"><a href="{% url 'attendance:course' course.pk %}">← {{ course.code }} · {{ course.title }}</a></p></div></div>
+<form method="post" class="card mw-640" novalidate>{% csrf_token %}
+{% for field in form %}{% include "partials/field.html" %}{% endfor %}
+<div class="mt-4"><button class="btn" type="submit">Create and take attendance</button></div></form>
+{% endblock %}

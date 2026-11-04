@@ -1,0 +1,40 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Profile & settings · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Profile &amp; settings</h1><p class="sub">Your details and your account security</p></div></div>
+<div class="grid g2">
+<div>
+<form method="post" id="profile-form" class="card mb-4" novalidate>{% csrf_token %}<h2>Personal details</h2>
+<div class="flex gap-4 items-center mb-4"><div class="avatar xl">{{ user.initials }}</div><div><b>{{ user.get_full_name|default:user.username }}</b><br><span class="badge-role">{{ user.get_role_display }}</span></div></div>
+<div class="row">{% with field=form.first_name %}{% include "partials/field.html" %}{% endwith %}{% with field=form.last_name %}{% include "partials/field.html" %}{% endwith %}</div>
+<div class="row">{% with field=form.email %}{% include "partials/field.html" %}{% endwith %}{% with field=form.phone %}{% include "partials/field.html" %}{% endwith %}</div>
+{% with field=form.bio %}{% include "partials/field.html" %}{% endwith %}
+<button class="btn" type="submit">Save changes</button></form>
+<section class="card mb-4"><h2>Academic details</h2>
+<div class="row"><div class="field"><label>Username {% icon "lock" %}</label><input value="{{ user.username }}" disabled></div>{% if user.index_number %}<div class="field"><label>Index number {% icon "lock" %}</label><input value="{{ user.index_number }}" disabled></div>{% endif %}</div>
+<div class="row">{% if user.faculty %}<div class="field"><label>Faculty {% icon "lock" %}</label><input value="{{ user.faculty }}" disabled></div>{% endif %}{% if user.batch %}<div class="field"><label>Batch {% icon "lock" %}</label><input value="{{ user.batch }}" disabled></div>{% endif %}</div>
+<div class="row"><div class="field{% if form.date_of_birth.errors %} invalid{% endif %}"><label for="{{ form.date_of_birth.id_for_label }}">Date of birth</label><input type="date" id="{{ form.date_of_birth.id_for_label }}" name="date_of_birth" form="profile-form" value="{{ form.date_of_birth.value|default_if_none:''|stringformat:'s' }}">{% for e in form.date_of_birth.errors %}<div class="err">{{ e }}</div>{% endfor %}</div>
+<div class="field"><label for="{{ form.emergency_contact.id_for_label }}">Emergency contact</label><input id="{{ form.emergency_contact.id_for_label }}" name="emergency_contact" form="profile-form" maxlength="80" value="{{ form.emergency_contact.value|default_if_none:'' }}"></div></div>
+{% for label, value in custom %}<div class="field"><label>{{ label }} {% icon "lock" %}</label><input value="{{ value }}" disabled></div>{% endfor %}
+<p class="sub m-0">{% icon "lock" %} Locked fields can only be changed by an administrator. Date of birth and emergency contact are saved with "Save changes" above; only you and administrators can see them.</p></section>
+<section class="card"><h2>Change password</h2><p class="sub mb-3">Also: <a href="{% url 'accounts:two-factor' %}">set up two-factor authentication</a>{% if two_factor %} <span class="pill ok">On</span>{% endif %}</p>
+<form method="post" action="{% url 'accounts:password-change' %}" novalidate>{% csrf_token %}
+<div class="field"><label for="pc-old">Current password</label><input id="pc-old" type="password" name="old_password" autocomplete="current-password" required></div>
+<div class="row"><div class="field"><label for="pc-new">New password</label><input id="pc-new" type="password" name="new_password1" autocomplete="new-password" required></div>
+<div class="field"><label for="pc-new2">Confirm</label><input id="pc-new2" type="password" name="new_password2" autocomplete="new-password" required></div></div>
+<button class="btn" type="submit">Update password</button></form></section>
+</div>
+<div>
+<section class="card mb-4"><h2>Notifications</h2>
+<div class="split mb-3"><span>Email me my notifications</span><label class="toggle"><input type="checkbox" name="email_notifications" form="profile-form" aria-label="Email me my notifications"{% if form.email_notifications.value %} checked{% endif %}><span></span></label></div>
+<p class="muted fs-xs mb-3">In-app notifications (assignments, grades, deadlines, forum replies) always appear in the bell. This switch only adds an email copy.</p>
+<button class="btn ghost" type="submit" form="profile-form">Save</button></section>
+<section class="card mb-4"><h2>Security</h2>
+<p class="mt-3"><a class="btn ghost" href="{% url 'accounts:two-factor' %}">{% icon "shield" %} Two-factor sign-in{% if two_factor %} <span class="pill ok">On</span>{% endif %}</a></p>
+<form method="post" action="{% url 'accounts:sign-out-others' %}" class="mt-3">{% csrf_token %}<button class="btn ghost" type="submit"{% if not other_sessions %} disabled{% endif %}>{% icon "log-out" %} Sign out other devices{% if other_sessions %} ({{ other_sessions }}){% endif %}</button></form>
+{% if not other_sessions %}<p class="muted fs-xs mt-2">You are signed in on this device only.</p>{% endif %}
+<h3 class="mt-4">Recent sign-ins</h3>{% for a in signins %}<div class="item"><div><div class="t">{{ a.created_at|date:"j M Y, g:i A" }}</div><div class="m">{{ a.ip_address|default:"address unknown" }}</div></div></div>{% empty %}<p class="muted">Nothing recorded yet.</p>{% endfor %}
+<p class="muted fs-xs mt-2">If you do not recognise a sign-in, change your password and tell an administrator.</p></section>
+{% if courses %}<section class="card"><h2>My courses</h2><ul class="list-plain mt-3">{% for c in courses %}<li><a href="{% url 'courses:detail' c.pk %}"><b>{{ c.code }}</b> {{ c.title }}</a></li>{% endfor %}</ul></section>{% endif %}
+</div></div>
+{% endblock %}

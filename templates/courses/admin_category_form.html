@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Edit {{ cat.name }} · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Edit {{ cat.get_kind_display|lower }}</h1><p class="sub"><a href="{% url 'courses:admin-categories' %}">← Departments &amp; semesters</a></p></div></div>
+<div class="card mw-480"><form method="post" novalidate>{% csrf_token %}
+  {% for field in form %}{% if field.name == "kind" %}{% elif field.name == "faculty" and cat.kind != "department" %}{% elif field.name == "start_date" or field.name == "end_date" %}{% if cat.kind == "semester" %}{% include "partials/field.html" %}{% endif %}{% else %}{% include "partials/field.html" %}{% endif %}{% endfor %}
+  <div class="cluster"><button class="btn" type="submit">Save</button><a class="btn ghost" href="{% url 'courses:admin-categories' %}">Cancel</a></div></form></div>
+<div class="card mw-480 mt-4"><h2>Delete this {{ cat.get_kind_display|lower }}</h2>
+  <p class="muted mt-2 mb-3">{% if cat.kind == "faculty" %}{{ usage }} department{{ usage|pluralize }} will be left without a faculty.{% elif cat.kind == "department" %}{{ usage }} course{{ usage|pluralize }} will be left without a department.{% else %}{{ usage }} course{{ usage|pluralize }} will be left without a semester.{% endif %} The courses themselves are not deleted.</p>
+  <form method="post" action="{% url 'courses:admin-category-delete' cat.pk %}" onsubmit="return confirm('Delete {{ cat.name|escapejs }}?')">{% csrf_token %}<button class="btn danger" type="submit">{% icon "trash" %} Delete</button></form></div>
+{% endblock %}

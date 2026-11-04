@@ -1,0 +1,42 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Participants · {{ course.code }}{% endblock %}
+{% block content %}
+{% include "courses/_head.html" with lecturers=lecturers %}
+{% if not manage %}
+<section class="card mb-5"><h2>Lecturers</h2>
+{% if staff_rows %}<div class="scroll-x"><table class="mt-3"><thead><tr><th>Name</th><th>Role</th><th>Email</th><th></th></tr></thead><tbody>
+{% for l in staff_rows %}<tr><td><div class="flex items-center gap-2"><span class="avatar sm">{{ l.u.initials }}</span><a href="{% url 'accounts:person' l.u.pk %}"><b>{{ l.u.get_full_name|default:l.u.username }}</b></a></div></td><td><span class="pill ok">Lecturer</span></td><td>{{ l.email|default:"—" }}</td>
+<td>{% if l.can_message %}<a class="btn sm ghost" href="{% url 'messaging:compose' %}?to={{ l.u.pk }}">Message</a>{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<p class="muted mt-3">No lecturer is assigned yet.</p>{% endif %}</section>
+<section class="card mb-5" x-data="{q:''}"><div class="split"><h2>Classmates ({{ enrolments|length }})</h2></div>
+{% if rows %}<label class="sr-only" for="cm">Search classmates</label><input id="cm" class="mw-280 mt-3" placeholder="Search classmates" x-model="q">
+<div class="scroll-x"><table class="mt-3"><thead><tr><th>Name</th><th>Student ID</th><th>Last access</th></tr></thead><tbody>
+{% for r in rows %}{% with u=r.e.user %}<tr x-show="!q || $el.textContent.toLowerCase().includes(q.toLowerCase())"><td><div class="flex items-center gap-2"><span class="avatar sm">{{ u.initials }}</span><a href="{% url 'accounts:person' u.pk %}"><b>{{ u.get_full_name|default:u.username }}</b></a>{% if u.pk == user.pk %} <span class="muted">(you)</span>{% endif %}</div></td><td>{{ u.index_number|default:u.username }}</td><td>{{ r.last }}</td></tr>{% endwith %}{% endfor %}</tbody></table></div>
+{% else %}<div class="empty">{% icon "users" %}<h3>Nobody else is enrolled yet</h3></div>{% endif %}</section>
+{% else %}
+<section class="card mb-5" x-data="{q:'',f:''}">
+  <div class="split"><h2>Students ({{ enrolments|length }})</h2>{% if manage and enrolments %}<a class="btn sm ghost" href="{% url 'courses:participants-export' course.pk %}">{% icon "download" %}Export CSV</a>{% endif %}</div>
+  {% if rows %}
+  <div class="cluster mt-3"><label class="sr-only" for="sq">Search students</label><input id="sq" class="mw-280" placeholder="Search by name or ID" x-model="q">
+  <label class="sr-only" for="sf">Filter students</label><select id="sf" class="mw-200" x-model="f"><option value="">All students</option><option value="risk">At risk</option><option value="suspended">Suspended</option></select></div>
+  <div class="scroll-x"><table class="mt-3"><thead><tr><th>Name</th><th>Index number</th>{% if manage %}<th>Progress</th><th>Grade</th>{% if show_attendance %}<th>Attendance</th>{% endif %}{% endif %}<th>Last active</th><th>Status</th>{% if manage %}<th></th>{% endif %}</tr></thead><tbody>
+  {% for r in rows %}{% with e=r.e %}<tr{% if r.risk %} data-risk="1"{% endif %}{% if e.status != "active" %} data-susp="1"{% endif %} x-show="(!q || $el.textContent.toLowerCase().includes(q.toLowerCase())) && (!f || (f === 'risk' && $el.dataset.risk) || (f === 'suspended' && $el.dataset.susp))"><td><a href="{% url 'accounts:person' e.user.pk %}"><b>{{ e.user.get_full_name|default:e.user.username }}</b></a></td><td>{{ e.user.index_number|default:"—" }}</td>
+    {% if manage %}<td>{% if r.progress is None %}<span class="muted">—</span>{% else %}<div class="mini-bar"><div class="progress"><i style="width:{{ r.progress }}%"></i></div><span>{{ r.progress }}%</span></div>{% endif %}</td>
+    <td>{% if r.grade is None %}<span class="muted">—</span>{% else %}{{ r.grade }}%{% endif %}</td>
+    {% if show_attendance %}<td>{% if r.attendance is None %}<span class="muted">—</span>{% else %}{{ r.attendance }}%{% endif %}</td>{% endif %}{% endif %}
+    <td>{{ r.last }}</td>
+    <td>{% if e.status != "active" %}<span class="pill warn">Suspended</span>{% elif r.risk %}<span class="pill bad">At risk</span>{% else %}<span class="pill ok">Active</span>{% endif %}</td>
+    {% if manage %}<td><div class="cluster end">
+      <form method="post" action="{% url 'courses:enrolment-action' course.pk e.pk 'suspend' %}">{% csrf_token %}<button class="btn sm ghost">{% if e.status == "active" %}Suspend{% else %}Reinstate{% endif %}</button></form>
+      <form method="post" action="{% url 'courses:enrolment-action' course.pk e.pk 'remove' %}" onsubmit="return confirm('Remove this student from the course?')">{% csrf_token %}<button class="btn sm danger">Remove</button></form></div></td>{% endif %}</tr>{% endwith %}{% endfor %}
+  </tbody></table></div>
+  {% else %}<div class="empty">{% icon "users" %}<h3>No students enrolled</h3><p>Use the form below to enrol students.</p></div>{% endif %}
+</section>{% endif %}
+{% if manage %}
+<section class="card"><h2>Enrol students</h2><p class="sub">Paste usernames or index numbers. Only student accounts can be enrolled.</p>
+  <form method="post" action="{% url 'courses:bulk-enrol' course.pk %}" class="mt-3">{% csrf_token %}
+    {% for field in form %}{% include "partials/field.html" %}{% endfor %}
+    <button class="btn" type="submit">{% icon "plus-circle" %}Enrol</button></form></section>
+{% endif %}
+{% endblock %}
+{% block scripts %}{% load static %}<script defer src="{% static 'js/alpine.min.js' %}"></script>{% endblock %}

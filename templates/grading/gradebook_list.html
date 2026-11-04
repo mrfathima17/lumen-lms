@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Gradebook · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Gradebook</h1><p class="sub">Choose a course to see marks, set weights and publish results</p></div></div>
+<div class="card">{% if courses %}<table><thead><tr><th>Course</th><th>Semester</th><th>Credits</th><th></th></tr></thead><tbody>
+{% for c in courses %}<tr><td><b>{{ c.code }}</b> · {{ c.title }}</td><td>{{ c.semester|default:"—" }}</td><td>{{ c.credits }}</td><td><a class="btn sm ghost" href="{% url 'grading:gradebook' c.pk %}">Open</a></td></tr>{% endfor %}
+</tbody></table>{% else %}<div class="empty">{% icon "graduation" %}<h3>No courses</h3><p>You do not teach any course yet.</p></div>{% endif %}</div>
+{% endblock %}

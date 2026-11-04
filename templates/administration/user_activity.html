@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Activity · {{ obj.username }} · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>User activity history</h1><p class="sub"><a href="{% url 'administration:activity' %}">← User activity</a> · Sign-ins and actions for one user</p></div></div>
+<div class="card mb-4"><div class="flex gap-4 items-center flex-wrap"><div class="avatar lg">{{ obj.initials }}</div><div><h2 class="m-0">{{ obj.get_full_name|default:obj.username }}</h2><small class="muted">{{ obj.username }} · {{ obj.get_role_display }}{% if obj.last_login %} · last sign-in {{ obj.last_login|date:"j M Y, g:i A" }}{% endif %}</small></div>
+<div class="ml-auto flex gap-2 flex-wrap"><a class="btn ghost sm" href="{% url 'administration:user-edit' obj.pk %}">{% icon "pencil" %} Edit user</a><form method="post" action="{% url 'administration:sessions-end-user' obj.pk %}" onsubmit="return confirm('Sign this person out everywhere?')">{% csrf_token %}<button class="btn danger sm" type="submit">Sign out all sessions</button></form></div></div></div>
+<div class="grid g4 mb-4">
+<div class="card stat"><b>{{ summary.signins_30 }}</b><span>Sign-ins in the last 30 days</span></div>
+<div class="card stat"><b>{{ summary.courses }}</b><span>Courses</span></div>
+<div class="card stat"><b>{{ summary.submissions }}</b><span>Assignments submitted</span></div>
+<div class="card stat"><b>{{ summary.attempts }}</b><span>Quiz attempts</span></div></div>
+<div class="card"><h2>Timeline</h2>{% if items %}<div class="scroll-x"><table class="mt-3"><thead><tr><th>When</th><th>Type</th><th>What</th><th>Note</th></tr></thead><tbody>
+{% for i in items %}<tr><td class="muted">{{ i.when|date:"j M Y, g:i A" }}</td><td><span class="pill mute">{{ i.kind }}</span></td><td>{{ i.text }}</td><td class="muted">{{ i.extra }}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="empty">{% icon "activity" %}<h3>Nothing recorded</h3><p>This person has not done anything that is logged yet.</p></div>{% endif %}</div>
+{% endblock %}

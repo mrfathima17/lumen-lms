@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}My courses · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>My courses</h1><p class="sub">{% if user.role == "student" %}Courses you are enrolled in{% elif user.role == "lecturer" %}Courses you teach{% else %}Every course in the system{% endif %}</p></div>
+  <div class="cluster">{% if user.role == "student" %}<a class="btn ghost" href="{% url 'courses:catalog' %}">{% icon "search" %}Browse catalog</a>{% elif user.role == "admin" %}<a class="btn" href="{% url 'courses:admin-course-new' %}">{% icon "plus" %}New course</a>{% endif %}</div></div>
+{% if courses %}
+<div class="grid g3">
+  {% for c in courses %}
+  <article class="card course">
+    <div class="cover tone-{{ c.tone }}">{{ c.code }}</div>
+    <div class="body">
+      <h3><a href="{% url 'courses:detail' c.pk %}">{{ c.title }}</a>{% if not c.is_visible %} <span class="pill warn">Hidden</span>{% endif %}</h3>
+      <small class="muted">{{ c.department|default:"No department" }}{% if c.semester %} · {{ c.semester }}{% endif %} · {{ c.credits }} credits</small>
+      {% if user.role == "student" %}<div class="progress" title="Your progress"><i style="width:{{ c.progress|default:0 }}%"></i></div>{% endif %}
+      <div class="meta"><span>{{ c.student_count }} student{{ c.student_count|pluralize }}{% if user.role == "student" and c.progress is not None %} · {{ c.progress }}% done{% endif %}</span><a class="btn sm ghost" href="{% url 'courses:detail' c.pk %}">Open</a></div>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card empty">{% icon "book" %}<h3>No courses yet</h3>
+  <p>{% if user.role == "student" %}You are not enrolled in any course. Browse the catalog to find one.{% elif user.role == "lecturer" %}No course is assigned to you yet. Ask an administrator.{% else %}Create the first course to get started.{% endif %}</p>
+  {% if user.role == "student" %}<a class="btn" href="{% url 'courses:catalog' %}">Browse catalog</a>{% elif user.role == "admin" %}<a class="btn" href="{% url 'courses:admin-course-new' %}">New course</a>{% endif %}</div>
+{% endif %}
+{% endblock %}

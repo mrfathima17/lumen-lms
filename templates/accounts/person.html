@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{{ target.get_full_name|default:target.username }} · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div class="flex gap-3 items-center"><div class="avatar lg">{{ target.initials }}</div><div><h1>{{ target.get_full_name|default:target.username }}</h1><p class="sub">{{ target.get_role_display }}{% if target.faculty %} · {{ target.faculty }}{% endif %}{% if not target.is_active %} · disabled{% endif %}</p></div></div>
+{% if can_message %}<a class="btn" href="{% url 'messaging:compose' %}?to={{ target.pk }}">{% icon "message" %} Send message</a>{% endif %}</div>
+{% if progress %}{% with p=progress %}
+{% if p.managed|length > 1 %}<form method="get" class="flex gap-3 items-center mb-4"><label for="pc" class="muted">Course</label><select id="pc" name="course" onchange="this.form.submit()">{% for c in p.managed %}<option value="{{ c.pk }}"{% if c.pk == p.course.pk %} selected{% endif %}>{{ c.code }} · {{ c.title }}</option>{% endfor %}</select><noscript><button class="btn sm" type="submit">Show</button></noscript></form>{% endif %}
+<div class="grid g4 mb-5"><div class="card stat"><b>{% if p.completion.tracked %}{{ p.completion.percent }}%{% else %}—{% endif %}</b><span>Course progress</span></div>
+<div class="card stat"><b>{% if p.summary.percent is not None %}{{ p.summary.percent|floatformat:"-1" }}%{% else %}—{% endif %}</b><span>Average grade</span></div>
+<div class="card stat"><b>{% if p.attendance.percent is not None %}{{ p.attendance.percent }}%{% else %}—{% endif %}</b><span>Attendance</span></div>
+<div class="card stat"><b>{{ p.last_active_label }}</b><span>Last active</span></div></div>
+<div class="grid g2 mb-5"><section class="card self-start"><h2>Assessment results <span class="pill mute">{{ p.course.code }}</span></h2><div class="scroll-x"><table><thead><tr><th>Item</th><th>Score</th><th>Status</th></tr></thead><tbody>
+{% for r in p.summary.rows %}<tr><td>{{ r.item.title }}</td><td>{% if r.percent is not None %}{{ r.percent|floatformat:"-1" }}%{% else %}—{% endif %}</td><td>{% if r.percent is not None %}<span class="pill ok">Graded</span>{% else %}<span class="pill warn">Not graded</span>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="3" class="muted">Nothing to grade in this course yet.</td></tr>{% endfor %}</tbody></table></div></section>
+<section class="card self-start"><h2>Recent activity</h2>{% if p.recent %}<div class="tl">{% for e in p.recent %}<div class="e"><b>{{ e.text }}</b><br><small class="muted">{{ e.when }}</small></div>{% endfor %}</div>{% else %}<p class="muted mt-3">No activity recorded yet.</p>{% endif %}</section></div>
+{% endwith %}{% endif %}
+<div class="grid g2"><section class="card"><h2>Details</h2><dl class="kv mt-3">
+{% if show_email and target.email %}<dt class="muted">Email</dt><dd><a href="mailto:{{ target.email }}">{{ target.email }}</a></dd>{% endif %}
+{% if target.index_number and user.role != "student" or target.pk == user.pk %}<dt class="muted">Index number</dt><dd>{{ target.index_number|default:"—" }}</dd>{% endif %}
+{% for label, value in custom %}<dt class="muted">{{ label }}</dt><dd>{{ value }}</dd>{% endfor %}
+</dl>{% if target.pk == user.pk %}<p class="mt-3"><a class="btn sm ghost" href="{% url 'accounts:profile' %}">Edit my details</a></p>{% elif user.role == "admin" %}<p class="mt-3"><a class="btn sm ghost" href="{% url 'administration:user-edit' target.pk %}">Edit user</a></p>{% endif %}</section>
+<section class="card"><h2>{% if user.role == "admin" %}Courses{% else %}Courses you share{% endif %}</h2>{% if courses %}<ul class="list-plain mt-3">{% for c in courses %}<li><a href="{% url 'courses:detail' c.pk %}"><b>{{ c.code }}</b> {{ c.title }}</a></li>{% endfor %}</ul>{% else %}<p class="muted mt-3">No courses.</p>{% endif %}</section></div>
+{% endblock %}

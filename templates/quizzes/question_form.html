@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{% if question %}Edit question{% else %}Add question{% endif %} · {{ quiz.title }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{% if question %}Edit question{% else %}Add question{% endif %}</h1><p class="sub"><a href="{% url 'quizzes:editor' quiz.pk %}">← {{ quiz.title }}</a></p></div></div>
+<div class="card mw-640"><form method="post" novalidate x-data="{ kind: '{{ form.kind.value|default:'mcq' }}' }">{% csrf_token %}
+  <div class="field"><label for="{{ form.kind.id_for_label }}">Question type</label><select name="kind" id="{{ form.kind.id_for_label }}" x-model="kind">{% for v, l in form.fields.kind.choices %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select></div>
+  {% with field=form.text %}{% include "partials/field.html" %}{% endwith %}
+  {% with field=form.marks %}{% include "partials/field.html" %}{% endwith %}
+  <div x-show="kind==='mcq'">{% for f in form %}{% if f.name == "choice_1" or f.name == "choice_2" or f.name == "choice_3" or f.name == "choice_4" or f.name == "correct" %}{% with field=f %}{% include "partials/field.html" %}{% endwith %}{% endif %}{% endfor %}</div>
+  <div x-show="kind==='tf'">{% with field=form.tf_correct %}{% include "partials/field.html" %}{% endwith %}</div>
+  <div x-show="kind==='short'">{% with field=form.accepted_answers %}{% include "partials/field.html" %}{% endwith %}</div>
+  <div class="cluster"><button class="btn" type="submit">Save question</button><a class="btn ghost" href="{% url 'quizzes:editor' quiz.pk %}">Cancel</a></div></form></div>
+{% endblock %}
+{% block scripts %}{% load static %}<script defer src="{% static 'js/alpine.min.js' %}"></script>{% endblock %}

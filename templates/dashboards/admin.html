@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Overview · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<h1>System overview</h1><p class="sub">{% now "l, j F Y" %}</p>
+{% if attention %}<section class="card mb-4"><h2>Needs attention</h2><ul class="plain mt-3">
+{% for level, text, url in attention %}<li class="flex gap-3 items-center mb-2"><span class="pill {{ level }}">{% if level == 'bad' %}Urgent{% else %}Check{% endif %}</span><span>{% if url %}<a href="{% url url %}">{{ text }}</a>{% else %}{{ text }}{% endif %}</span></li>{% endfor %}</ul></section>{% endif %}
+<div class="grid g4 mb-5">
+  <div class="card stat"><b>{{ total_users }}</b><span>Total users</span></div>
+  <div class="card stat"><b>{{ active_courses }}</b><span>Active courses</span></div>
+  <div class="card stat"><b>{{ online_now }}</b><span>Online now</span></div>
+  <div class="card stat"><b>{{ blocked_today }}</b><span>Blocked attempts today</span></div>
+</div>
+<div class="grid g2 mb-5">
+  <div class="card"><h2>Logins this week</h2>
+    {% if week_total %}<div class="bars mb-5" role="img" aria-label="Sign-ins per day for the last seven days">{% for d in week %}<div style="height:{{ d.pct }}%" title="{{ d.count }} sign-in{{ d.count|pluralize }}"><span>{{ d.label }}</span></div>{% endfor %}</div>
+    {% else %}<div class="empty">{% icon "bar-chart" %}<p>No sign-ins in the last seven days.</p></div>{% endif %}</div>
+  <div class="card"><h2>Server health</h2>
+    {% if health.storage is not None %}<p>Storage <b class="float-right">{{ health.storage }}%</b></p><div class="progress" role="progressbar" aria-label="Storage used" aria-valuenow="{{ health.storage }}" aria-valuemin="0" aria-valuemax="100"><i{% if health.storage >= 90 %} class="bg-bad"{% elif health.storage >= 75 %} class="bg-warn"{% endif %} style="width:{{ health.storage }}%"></i></div>{% endif %}
+    <p class="mt-4">Database <b class="float-right text-{{ health.database.1 }}">{{ health.database.0 }}</b></p>
+    <p class="mt-3">Email service <b class="float-right text-{{ health.email.1 }}">{{ health.email.0 }}</b></p>
+    <p class="mt-3">Background jobs <b class="float-right text-{{ health.jobs.1 }}">{{ health.jobs.0 }}</b></p>
+    <p class="mt-3">Last backup <b class="float-right">{% if health.backup %}{{ health.backup|date:"j M, H:i" }}{% else %}None yet{% endif %}</b></p></div>
+</div>
+<div class="card"><h2>Recent activity <a class="feed-link" href="{% url 'administration:audit' %}">Audit log</a></h2>
+  {% if recent_audit %}<div class="scroll-x"><table><thead><tr><th>Time</th><th>Event</th><th>By</th></tr></thead><tbody>
+  {% for a in recent_audit %}<tr><td class="nowrap">{{ a.created_at|date:"j M, H:i" }}</td><td>{{ a|audit_event }}</td><td>{{ a|audit_user }}</td></tr>{% endfor %}
+  </tbody></table></div>{% else %}<div class="empty">{% icon "activity" %}<p>Nothing recorded yet.</p></div>{% endif %}</div>
+{% endblock %}

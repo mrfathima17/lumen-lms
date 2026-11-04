@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Grades · {{ course.code }}{% endblock %}
+{% block content %}
+{% include "courses/_head.html" with tab="grades" lecturers=course.lecturers.all %}
+<div class="grid g4 mb-5"><div class="card stat"><b>{% if summary.percent is None %}—{% else %}{{ summary.percent|floatformat:"-1" }}%{% endif %}</b><span>Course total so far</span></div>
+<div class="card stat"><b>{% if summary.band %}{{ summary.band.letter }}{% else %}—{% endif %}</b><span>Current grade</span></div>
+<div class="card stat"><b>{{ summary.graded }}</b><span>Items marked</span></div>
+<div class="card stat"><b>{{ summary.pending }}</b><span>Still to mark</span></div></div>
+<section class="card"><h2 class="sr-only">Marks</h2>
+  {% if summary.rows %}<div class="scroll-x"><table><thead><tr><th>Item</th><th>Type</th><th>Score</th><th>Weight</th></tr></thead><tbody>
+    {% for r in summary.rows %}<tr><td>{{ r.item.title }}</td><td>{{ r.item.get_kind_display }}</td><td>{% if r.percent is None %}<span class="pill warn">Pending</span>{% else %}<b>{{ r.percent|floatformat:"-1" }}%</b>{% endif %}</td><td>{{ r.item.weight|floatformat:"-2" }}%</td></tr>{% endfor %}
+    <tr><td><b>Course total</b></td><td></td><td><b>{% if summary.percent is None %}—{% else %}{{ summary.percent|floatformat:"-1" }}%{% endif %}</b></td><td>{{ summary.total_weight|floatformat:"-2" }}%</td></tr></tbody></table></div>
+  <p class="muted fs-xs mt-3">Based on {{ summary.graded_weight|floatformat:"-2" }}% of the {{ summary.total_weight|floatformat:"-2" }}% marked so far. The final result is published by your lecturer.</p>
+  {% else %}<div class="empty">{% icon "graduation" %}<h3>No graded items yet</h3><p>Your lecturer has not set up the gradebook for this course.</p></div>{% endif %}
+  <a class="btn sm ghost mt-4" href="{% url 'grading:my-results' %}">{% icon "graduation" %}All my results</a></section>
+{% endblock %}

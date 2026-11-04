@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{{ course.code }} completion · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Course completion</h1><p class="sub">{{ course.title }} · {{ course.code }}</p></div>
+  <div class="cluster"><a class="btn ghost" href="{% url 'completion:mine' %}">All courses</a><a class="btn ghost" href="{% url 'courses:detail' course.pk %}">Open course {% icon "arrow" %}</a></div></div>
+{% if certificate %}<div class="notice success mb-4">{% if certificate.is_valid %}You completed this course on {{ certificate.issued_at|date:"j M Y" }}. <a href="{% url 'completion:pdf' certificate.code %}">Download your certificate (PDF)</a>.{% else %}Your certificate for this course was revoked. Ask your lecturer if you think this is a mistake.{% endif %}</div>{% endif %}
+<div class="grid g2">
+<div>
+{% if sections %}{% for sec in sections %}<section class="card mb-4"><h2>{{ sec.title }}</h2>
+{% for it in sec.items %}<div class="item">
+{% if it.manual %}<form method="post" action="{% url 'content:done' it.pk %}">{% csrf_token %}<input type="hidden" name="back" value="completion"><input class="mt-1" type="checkbox" onchange="this.form.submit()"{% if it.done %} checked{% endif %} aria-label="Done: {{ it.title }}"></form>
+{% else %}<input class="mt-1" type="checkbox" disabled{% if it.done %} checked{% endif %} aria-label="{{ it.title }}: completes automatically">{% endif %}
+<span class="ico">{% if it.kind == "file" %}{% icon "file-text" %}{% elif it.kind == "link" %}{% icon "arrow" %}{% elif it.kind == "assignment" %}{% icon "upload" %}{% elif it.kind == "quiz" %}{% icon "edit" %}{% else %}{% icon "bar-chart" %}{% endif %}</span>
+<div><div class="t"><a class="ink" href="{% if it.kind == 'file' or it.kind == 'link' %}{% url 'content:view' it.pk %}{% else %}{% url it.url.0 it.url.1 %}{% endif %}">{{ it.title }}</a></div><div class="m">{% if it.manual %}Tick when you have finished it{% else %}Completes automatically{% endif %}</div></div></div>{% endfor %}
+</section>{% endfor %}{% endif %}
+</div>
+<div>
+{% if result.tracked %}<div class="card mb-4 text-center"><div class="donut" style="background:conic-gradient(var({% if result.complete %}--ok{% else %}--brand{% endif %}) {{ result.percent }}%, var(--line) 0)"><div class="donut-inner">{{ result.percent }}%</div></div><b>{{ result.met }} of {{ result.total }} rules met</b>{% if act_total %}<p class="muted fs-xs mt-2">{{ act_done }} of {{ act_total }} activities complete</p>{% endif %}</div>{% endif %}
+<section class="card mb-4"><h2>Completion rules</h2>
+{% if result.tracked %}<div class="scroll-x"><table class="mt-3"><thead><tr><th>Rule</th><th>Your result</th><th>Status</th></tr></thead><tbody>
+{% for c in result.checks %}<tr><td>{{ c.label }}</td><td>{{ c.detail }}</td><td>{% if c.ok %}<span class="pill ok">Met</span>{% else %}<span class="pill warn">Not yet</span>{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+<p class="sub mt-3">When every rule is met, your certificate unlocks.</p>
+<a class="btn ghost sm mt-3" href="{% url 'completion:certificates' %}">{% icon "award" %} My certificates</a>
+{% else %}<div class="empty">{% icon "check-circle" %}<h3>No rules set</h3><p>Your lecturer has not set completion rules for this course yet.</p></div>{% endif %}</section>
+{% if others %}<div class="card"><h2>Other courses</h2>
+  {% for o in others %}<p class="split mt-3"><a href="{% url 'completion:mine-course' o.course.pk %}">{{ o.course.title }}</a> <b>{{ o.percent }}%</b></p><div class="progress m-0"><i style="width:{{ o.percent }}%"></i></div>{% endfor %}</div>{% endif %}
+</div></div>
+{% endblock %}

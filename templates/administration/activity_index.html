@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}User activity · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>User activity</h1><p class="sub">Choose a person to see what they have done</p></div></div>
+<form method="get" class="card mb-4"><div class="flex gap-3 flex-wrap"><label class="sr-only" for="q">Search</label><input id="q" name="q" value="{{ q }}" placeholder="Name, username or index number" class="mw-260"><button class="btn" type="submit">Search</button></div></form>
+<div class="card">{% if people %}<div class="scroll-x"><table><thead><tr><th>Person</th><th>Role</th><th>Last sign-in</th><th></th></tr></thead><tbody>
+{% for u in people %}<tr><td><b>{{ u.get_full_name|default:u.username }}</b> <span class="muted">{{ u.username }}</span></td><td>{{ u.get_role_display }}</td><td class="muted">{% if u.last_login %}{{ u.last_login|date:"j M Y, g:i A" }}{% else %}Never{% endif %}</td><td><a class="btn sm ghost" href="{% url 'administration:user-activity' u.pk %}">View activity</a></td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="empty">{% icon "activity" %}<h3>No one found</h3><p>Try a different search.</p></div>{% endif %}</div>
+{% endblock %}

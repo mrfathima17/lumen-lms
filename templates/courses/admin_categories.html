@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Faculties, departments & semesters · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Departments &amp; semesters</h1><p class="sub">Group your courses by faculty, department and semester</p></div></div>
+<div class="grid g-cats">
+  <div class="col">
+    <section class="card"><h2>Faculties</h2>
+      {% if faculties %}<table class="cats"><thead><tr><th>Faculty</th><th>Departments</th><th></th></tr></thead><tbody>
+      {% for f in faculties %}<tr><td>{{ f.name }}</td><td>{{ f.n }}</td><td class="end"><a class="btn ghost sm" href="{% url 'courses:admin-category-edit' f.pk %}" aria-label="Edit {{ f.name }}">Edit</a></td></tr>{% endfor %}
+      </tbody></table>{% else %}<p class="muted mt-2 mb-3">No faculties yet. Add one to group your departments.</p>{% endif %}
+      {% include "courses/_category_add.html" with form=forms.faculty kind="faculty" %}
+    </section>
+    <section class="card"><h2>Departments</h2>
+      {% if departments %}<table class="cats"><thead><tr><th>Department</th><th>Courses</th><th></th></tr></thead><tbody>
+      {% for d in departments %}<tr><td>{{ d.name }}{% if d.faculty %}<br><small class="muted">{{ d.faculty.name }}</small>{% endif %}</td><td>{{ d.n }}</td><td class="end"><a class="btn ghost sm" href="{% url 'courses:admin-category-edit' d.pk %}" aria-label="Edit {{ d.name }}">Edit</a></td></tr>{% endfor %}
+      </tbody></table>{% else %}<div class="empty">{% icon "building" %}<p>No departments yet.</p></div>{% endif %}
+      {% include "courses/_category_add.html" with form=forms.department kind="department" %}
+    </section>
+  </div>
+  <section class="card"><h2>Semesters</h2>
+    {% if semesters %}<div class="scroll-x"><table class="cats"><thead><tr><th>Semester</th><th>Dates</th><th>Status</th><th></th></tr></thead><tbody>
+    {% for s in semesters %}<tr><td>{{ s.name }}<br><small class="muted">{{ s.n }} course{{ s.n|pluralize }}</small></td><td class="nowrap">{{ s.span|default:"–" }}</td>
+      <td>{% if s.status == "current" %}<span class="pill ok">Current</span>{% elif s.status == "upcoming" %}<span class="pill warn">Upcoming</span>{% elif s.status == "archived" %}<span class="pill mute">Archived</span>{% else %}<span class="pill mute">No dates</span>{% endif %}</td>
+      <td class="end"><a class="btn ghost sm" href="{% url 'courses:admin-category-edit' s.pk %}" aria-label="Edit {{ s.name }}">Edit</a></td></tr>{% endfor %}
+    </tbody></table></div>{% else %}<div class="empty">{% icon "calendar" %}<p>No semesters yet.</p></div>{% endif %}
+    {% include "courses/_category_add.html" with form=forms.semester kind="semester" %}
+  </section>
+</div>
+{% endblock %}

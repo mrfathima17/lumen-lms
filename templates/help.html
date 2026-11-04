@@ -1,0 +1,17 @@
+{% extends base_tpl %}{% load lumen %}
+{% block title %}Help · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Help &amp; FAQ</h1><p class="sub">Find answers{% if user.is_authenticated %} or contact support{% endif %}</p></div></div>
+<label class="sr-only" for="faq-q">Search help articles</label><input id="faq-q" class="mw-360 mb-4" type="search" placeholder="Search help articles" oninput="var v=this.value.toLowerCase();document.querySelectorAll('#faq details').forEach(function(d){d.style.display=d.textContent.toLowerCase().indexOf(v)>-1?'':'none'})">
+<div class="grid g2"><div class="card self-start" id="faq"><h2>Frequently asked questions</h2>
+<details class="topic mb-2"><summary>How do I submit an assignment?</summary><p class="pad-faq">Open the course, find the assignment, click Submit, upload your file and confirm.</p></details>
+<details class="topic mb-2"><summary>Why can't I open a quiz?</summary><p class="pad-faq">Some quizzes are restricted to certain networks, or are not open yet. Connect to the approved network or ask your lecturer.</p></details>
+<details class="topic mb-2"><summary>I forgot my password</summary><p class="pad-faq">Ask an administrator to reset it. You will get a temporary password and be asked to choose your own at first sign-in.</p></details>
+<details class="topic mb-2"><summary>How do I contact my lecturer?</summary><p class="pad-faq">Use Messages, or the course's forum.</p></details>
+<details class="topic mb-2"><summary>How do I get my certificate?</summary><p class="pad-faq">When you meet a course's completion rules, the certificate appears under Certificates and can be downloaded as a PDF.</p></details></div>
+<div class="card self-start">{% if user.is_authenticated %}<h2>Contact support</h2>
+<form method="post" class="mt-3" novalidate>{% csrf_token %}<div class="field"><label for="sup-s">Subject</label><input id="sup-s" name="subject" maxlength="120" required></div>
+<div class="field"><label for="sup-m">Message</label><textarea id="sup-m" name="message" rows="4" maxlength="3000" required></textarea></div><button class="btn" type="submit">Send</button></form>
+<hr class="sep"><p><a href="{% url 'core:terms' %}">Terms &amp; privacy</a></p>{% if lumen_site.support_email %}<p class="mt-2">Email <a href="mailto:{{ lumen_site.support_email }}">{{ lumen_site.support_email }}</a></p>{% endif %}<p class="mt-2"><a href="{% url 'messaging:inbox' %}">Open my messages</a> to write to a lecturer.</p>
+{% else %}<h2>More</h2><p class="mt-3"><a href="{% url 'core:terms' %}">Terms &amp; privacy</a></p><p class="mt-2"><a href="{% url 'accounts:login' %}">Sign in</a> to message your lecturer or an administrator.</p>{% endif %}</div></div>
+{% endblock %}

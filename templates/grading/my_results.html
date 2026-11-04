@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Exam results · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Exam results &amp; GPA</h1><p class="sub">{{ student.get_full_name|default:student.username }} · {{ student.index_number|default:student.username }} · published results only</p></div>
+  <div class="cluster"><a class="btn ghost no-print" href="#" onclick="window.print();return false">{% icon "printer" %} Print result sheet</a><a class="btn ghost no-print" href="{% url 'grading:my-grades' %}">Coursework grades</a></div></div>
+{% if semesters %}
+<div class="sem-tabs no-print">{% for sem in semesters %}<a href="?semester={{ sem.index }}"{% if sem.index == current.index %} class="on" aria-current="page"{% endif %}>{{ sem.name }}</a>{% endfor %}</div>
+<div class="grid g4 mb-5">
+  <div class="card stat"><b>{% if current.gpa is None %}—{% else %}{{ current.gpa|floatformat:2 }}{% endif %}</b><span>Semester GPA</span></div>
+  <div class="card stat"><b>{{ cumulative|floatformat:2 }}</b><span>Cumulative GPA</span></div>
+  <div class="card stat"><b>{{ credits }}</b><span>Credits earned</span></div>
+  <div class="card stat"><b>{% if standing %}<span class="pill {{ standing.0 }}">{{ standing.1 }}</span>{% else %}—{% endif %}</b><span>Standing</span></div></div>
+<div class="grid g2"><div>
+<div class="card"><h2>{{ current.name }}</h2>
+  <div class="scroll-x"><table class="mt-3"><thead><tr><th>Code</th><th>Course</th><th class="num">Credits</th><th class="num">Marks</th><th>Grade</th><th class="num">Points</th><th class="num">Quality pts</th></tr></thead><tbody>
+  {% for r in current.results %}<tr><td>{{ r.course.code }}</td><td><b>{{ r.course.title }}</b></td><td class="num">{{ r.credits }}</td><td class="num">{{ r.percent|floatformat:"-1" }}%</td><td><span class="pill {{ r.tone }}">{{ r.letter }}</span></td><td class="num">{{ r.points|floatformat:1 }}</td><td class="num">{{ r.quality|floatformat:1 }}</td></tr>{% endfor %}</tbody>
+  <tfoot><tr><td colspan="2">Total</td><td class="num">{{ current.credits }}</td><td></td><td></td><td></td><td class="num">{{ current.quality|floatformat:1 }}</td></tr></tfoot></table></div>
+  <p class="sub mt-4">GPA = total quality points ÷ total credits. Quality points = grade points × credits.</p></div></div>
+<div>
+<div class="card mb-4"><h2>GPA by semester</h2><div class="trend">{% for sem in semesters %}<div style="height:{{ sem.bar }}%"><b>{{ sem.gpa|floatformat:2 }}</b><span>S{{ forloop.counter }}</span></div>{% endfor %}</div></div>
+{% if scale %}<div class="card"><h2>Grade scale</h2><table class="mt-3"><thead><tr><th>Grade</th><th>Marks</th><th class="num">Points</th></tr></thead><tbody>
+  {% for b in scale %}<tr><td>{{ b.letter }}</td><td>{{ b.low|floatformat:"-1" }}–{{ b.high|floatformat:"-1" }}</td><td class="num">{{ b.points|floatformat:1 }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+</div></div>
+{% else %}<div class="card empty">{% icon "file-text" %}<h3>No results yet</h3><p>Your results appear here when your lecturers publish them.</p></div>{% endif %}
+{% endblock %}

@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Not available · {{ lumen_site.site_name }}{% endblock %}
+{% block body %}
+<main id="main" class="center-page"><div class="card center-box"><div class="hero-icon">{% icon "layout" %}</div><h1>{{ module_label }} is switched off</h1><p class="sub">An administrator has turned this part of the site off for now.</p>{% if user.is_authenticated %}<a class="btn" href="{% url user.home_url_name %}">Back to my dashboard</a>{% else %}<a class="btn" href="{% url 'core:public-home' %}">Back to home</a>{% endif %}</div></main>
+{% endblock %}

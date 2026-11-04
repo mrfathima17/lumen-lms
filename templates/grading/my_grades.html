@@ -1,0 +1,30 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Grades · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>My grades</h1><p class="sub">Your marks so far in each course. Final results appear under Exam results when your lecturer publishes them.</p></div>
+  <div class="cluster"><a class="btn ghost" href="{% url 'grading:my-results' %}">{% icon "file-text" %}Exam results &amp; GPA</a></div></div>
+{% if summaries %}
+<div class="grid g4 mb-5">
+  <div class="card stat"><b>{% if stats.gpa is None %}—{% else %}{{ stats.gpa|floatformat:2 }}{% endif %}</b><span>Cumulative GPA</span></div>
+  <div class="card stat"><b>{% if stats.average is None %}—{% else %}{{ stats.average|floatformat:"-1" }}%{% endif %}</b><span>Average score</span></div>
+  <div class="card stat"><b>{{ stats.graded }}</b><span>Graded items</span></div>
+  <div class="card stat"><b>{{ stats.pending }}</b><span>Pending</span></div></div>
+<div class="card mb-5"><h2>Course summary</h2>
+  <div class="scroll-x"><table class="mt-3"><thead><tr><th>Course</th><th>Lecturer</th><th class="num">Coursework</th><th class="num">Quizzes</th><th class="num">Overall</th><th>Grade</th></tr></thead><tbody>
+  {% for s in summaries %}<tr><td><a href="{% url 'grading:my-course-grades' s.course.pk %}"><b>{{ s.course.title }}</b></a><br><small class="muted">{{ s.course.code }}</small></td>
+    <td>{% for l in s.course.lecturers.all %}{{ l.get_full_name|default:l.username }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td>
+    <td class="num">{% if s.coursework is None %}—{% else %}{{ s.coursework|floatformat:"-1" }}%{% endif %}</td>
+    <td class="num">{% if s.quizzes is None %}—{% else %}{{ s.quizzes|floatformat:"-1" }}%{% endif %}</td>
+    <td class="num">{% if s.percent is None %}—{% else %}<b>{{ s.percent|floatformat:"-1" }}%</b>{% endif %}</td>
+    <td>{% if s.band %}<span class="pill ok">{{ s.band.letter }}</span>{% else %}<span class="muted">—</span>{% endif %}</td></tr>{% endfor %}</tbody></table></div></div>
+{% for s in summaries %}<section class="card mb-4"><div class="split"><h2><a href="{% url 'courses:detail' s.course.pk %}">{{ s.course.title }}</a> <span class="muted">— details</span></h2>
+  {% if s.percent is not None %}<span class="pill ok">{{ s.percent|floatformat:"-1" }}%{% if s.band %} · {{ s.band.letter }}{% endif %}</span>{% else %}<span class="pill mute">No marks yet</span>{% endif %}</div>
+  {% if s.rows %}<div class="scroll-x"><table class="mt-3"><thead><tr><th>Item</th><th>Type</th><th class="num">Score</th><th class="num">Weight</th><th>Feedback</th></tr></thead><tbody>
+  {% for r in s.rows %}<tr><td>{{ r.item.title }}</td><td>{{ r.item.get_kind_display }}</td>
+    <td class="num">{% if r.percent is None %}<span class="pill warn">Pending</span>{% else %}{{ r.percent|floatformat:"-1" }}%{% endif %}</td><td class="num">{{ r.item.weight|floatformat:"-2" }}%</td>
+    <td>{% if r.item.assignment_id %}<a href="{% url 'assignments:detail' r.item.assignment_id %}">View</a>{% elif r.item.quiz_id and r.percent is not None and "quizzes" not in disabled_modules %}<a href="{% url 'quizzes:student-detail' r.item.quiz_id %}">Review</a>{% else %}—{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+  {% if s.graded_weight != s.total_weight %}<p class="muted fs-xs mt-3">Your mark counts only the {{ s.graded_weight|floatformat:"-2" }}% of the course that is graded so far.</p>{% endif %}
+  {% else %}<p class="muted mt-3">Your lecturer has not set up grading for this course yet.</p>{% endif %}
+</section>{% endfor %}
+{% else %}<div class="card empty">{% icon "graduation" %}<h3>No courses</h3><p>Your grades will appear here once you are enrolled in a course.</p></div>{% endif %}
+{% endblock %}

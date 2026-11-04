@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Gradebook · {{ course.code }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Gradebook</h1><p class="sub"><a href="{% url 'courses:detail' course.pk %}">{{ course.code }} · {{ course.title }}</a> · {{ course.credits }} credits</p></div>
+  <div class="cluster"><a class="btn ghost" href="{% url 'grading:export' course.pk %}">{% icon "download" %}Export CSV</a><a class="btn ghost" href="{% url 'grading:item-add' course.pk %}">{% icon "plus" %}Add item</a>
+    <form method="post" action="{% url 'grading:publish' course.pk %}" onsubmit="return confirm('Publish results? Students will see their final marks, letters and GPA.')">{% csrf_token %}<button class="btn" type="submit">{% icon "check" %}Publish results</button></form></div></div>
+{% if items %}
+<div class="card mb-5"><p class="split"><span><b>Weights</b> add up to {{ total_weight|floatformat:"-2" }}%</span>{% if weight_ok %}<span class="pill ok">Complete</span>{% else %}<span class="pill warn">Should total 100%</span>{% endif %}</p>
+  <p class="muted fs-xs mt-2">The course mark counts only the items graded so far, so it grows more reliable as marking finishes. {% if published %}Results were published for {{ published }} student{{ published|pluralize }}; publishing again updates them.{% endif %}</p></div>
+<div class="card scroll-x"><table><thead><tr><th>Student</th>
+  {% for i in items %}<th class="num">{{ i.title }}<br><span class="muted fs-xs">{{ i.weight|floatformat:"-2" }}% · <a href="{% url 'grading:item-edit' i.pk %}">weight</a>{% if i.kind == "manual" %} · <a href="{% url 'grading:manual-marks' i.pk %}">marks</a>{% endif %}</span></th>{% endfor %}
+  <th class="num">Total</th><th>Grade</th></tr></thead><tbody>
+  {% for r in rows %}<tr><td><div class="flex items-center gap-2"><span class="avatar sm">{{ r.student.initials }}</span><b>{{ r.student.get_full_name|default:r.student.username }}</b></div></td>
+    {% for c in r.cells %}<td class="num">{% if c is None %}—{% else %}{{ c|floatformat:"-1" }}{% endif %}</td>{% endfor %}
+    <td class="num"><b>{% if r.percent is None %}—{% else %}{{ r.percent|floatformat:"-1" }}%{% endif %}</b></td>
+    <td>{% if r.band %}<span class="pill {% if r.percent >= 70 %}ok{% elif r.percent >= 50 %}warn{% else %}bad{% endif %}">{{ r.band.letter }}</span>{% else %}—{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="{{ items|length|add:3 }}"><div class="empty">{% icon "users" %}<p>No students are enrolled yet.</p></div></td></tr>{% endfor %}
+</tbody></table></div>
+<div class="card mt-5"><h2>Items</h2><ul class="list-plain mt-3">{% for i in items %}<li class="split"><span>{{ i.title }} <span class="pill mute">{{ i.get_kind_display }}</span> <span class="muted fs-xs">{{ i.weight|floatformat:"-2" }}%</span></span>
+  <form method="post" action="{% url 'grading:item-delete' i.pk %}" onsubmit="return confirm('Remove this item from the gradebook?')">{% csrf_token %}<button class="btn sm danger">Remove</button></form></li>{% endfor %}</ul></div>
+{% else %}
+<div class="card empty">{% icon "graduation" %}<h3>The gradebook is empty</h3><p>Add the assignments, quizzes and exams that make up the course mark, and give each a weight.</p><a class="btn" href="{% url 'grading:item-add' course.pk %}">Add the first item</a></div>
+{% endif %}
+{% endblock %}

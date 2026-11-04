@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}My attendance · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>My attendance</h1><p class="sub">Present and late count as attended; excused sessions are left out</p></div>
+<div class="cluster"><a class="btn ghost no-print" href="#" onclick="window.print();return false">{% icon "printer" %} Print</a></div></div>
+{% if cards %}
+<div class="grid g4 mb-5"><div class="card stat"><b>{% if overall.percent is None %}—{% else %}{{ overall.percent|floatformat:"-1" }}%{% endif %}</b><span>Overall attendance</span></div><div class="card stat"><b>{{ overall.attended }} / {{ overall.counted }}</b><span>Sessions attended</span></div><div class="card stat"><b>{{ overall.late }}</b><span>Late arrivals</span></div><div class="card stat"><b>{{ overall.absent }}</b><span>Absences</span></div></div>
+<div class="grid g3 mb-5">{% for c in cards %}<div class="card"><div class="split"><div><b>{{ c.course.code }}</b> · {{ c.course.title }}</div>{% if c.stats.percent is None %}<span class="pill mute">No data</span>{% else %}<span class="pill {{ c.level }}">{{ c.stats.percent|floatformat:"-1" }}%</span>{% endif %}</div>
+<div class="bar80"><i class="{% if c.level == 'bad' %}bg-bad{% elif c.level == 'ok' %}bg-ok{% else %}bg-warn{% endif %}" style="width:{{ c.stats.percent|default:0|floatformat:0 }}%"></i><s style="left:{{ limit }}%"></s></div>
+<p class="muted fs-xs mt-3">{{ c.stats.attended }} of {{ c.stats.counted }} sessions attended · {{ c.stats.late }} late · {{ c.stats.absent }} absent{% if c.stats.excused %} · {{ c.stats.excused }} excused{% endif %}</p>
+{% if c.level == "bad" %}<div class="notice error mt-3">Below the {{ limit }}% required. Attending the next {{ c.needed }} session{{ c.needed|pluralize }} in a row brings you to {{ limit }}%.</div>{% endif %}</div>{% endfor %}</div>
+<section class="card"><div class="split mb-3"><h2 class="m-0">Recent sessions</h2>
+<form method="get"><label class="sr-only" for="course">Course</label><select id="course" name="course" class="mw-220" onchange="this.form.submit()"><option value="">All courses</option>{% for c in cards %}<option value="{{ c.course.pk }}"{% if only == c.course.pk|stringformat:"d" %} selected{% endif %}>{{ c.course.code }}</option>{% endfor %}</select></form></div>
+{% if recent %}<table><thead><tr><th>Date</th><th>Course</th><th>Session</th><th>Status</th></tr></thead><tbody>
+{% for r in recent %}<tr><td>{{ r.session.held_on|date:"D j M" }}</td><td>{{ r.session.course.code }}</td><td>{{ r.session.title }}</td><td><span class="pill {% if r.status == 'present' %}ok{% elif r.status == 'late' %}warn{% elif r.status == 'absent' %}bad{% else %}mute{% endif %}">{{ r.get_status_display }}</span></td></tr>{% endfor %}</tbody></table>
+{% else %}<div class="empty">{% icon "calendar-check" %}<h3>No sessions recorded yet</h3><p>Your attendance appears here after your lecturer takes it.</p></div>{% endif %}</section>
+{% else %}<div class="card empty">{% icon "calendar-check" %}<h3>No courses</h3><p>Enrol in a course to see your attendance here.</p></div>{% endif %}
+{% endblock %}

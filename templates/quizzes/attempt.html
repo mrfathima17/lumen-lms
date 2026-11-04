@@ -1,0 +1,45 @@
+{% extends "base.html" %}{% load lumen static %}
+{% block title %}{{ quiz.title }} · attempt {{ attempt.number }}{% endblock %}
+{% block head %}<script src="{% static 'js/htmx.min.js' %}"></script><script defer src="{% static 'js/alpine.min.js' %}"></script>
+<style>.q-text{font-weight:var(--fw-semi);margin-bottom:var(--s3)}.opt{display:flex;gap:var(--s3);align-items:center;padding:var(--s3);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:var(--s2);cursor:pointer;font-weight:var(--fw-medium)}.opt:hover{background:var(--brand-soft)}
+.timer{position:sticky;top:var(--s3);z-index:6}.timer b{font-variant-numeric:tabular-nums;font-size:var(--fs-lg)}fieldset{border:0;margin:0;padding:0}</style>{% endblock %}
+{% block content %}
+<div hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+     x-data="{ left: {% if left is None %}null{% else %}{{ left }}{% endif %}, end: Date.now() + {{ left|default:0 }} * 1000,
+       get label(){ if(this.left===null) return ''; const m=Math.floor(this.left/60), s=this.left%60; return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0') } }"
+     x-init="if(left!==null){ const t=setInterval(()=>{ left=Math.max(0,Math.round((end-Date.now())/1000)); if(left===0){ clearInterval(t); document.getElementById('finish-form').submit() } },500) }">
+  <small class="muted"><a href="{% url 'courses:detail' quiz.course.pk %}">{{ quiz.course.code }}</a> / {{ quiz.title }}</small>
+  <h1>{{ quiz.title }}</h1><p class="sub">{{ questions|length }} question{{ questions|length|pluralize }}{% if quiz.time_limit_minutes %} · {{ quiz.time_limit_minutes }} minutes{% endif %} · {{ quiz.max_attempts }} attempt{{ quiz.max_attempts|pluralize }} allowed</p>
+  <div class="grid g2 attempt-grid"><div>
+  {% for item in questions %}{% with q=item.q %}
+  <section class="card mb-4 q" id="q{{ q.pk }}">
+    <p class="q-n">Question {{ forloop.counter }} of {{ questions|length }} · {{ q.marks|floatformat:"-2" }} mark{{ q.marks|pluralize }}</p>
+    <p class="q-text mt-2">{{ q.text|linebreaksbr }}</p>
+    {% if q.kind == "mcq" or q.kind == "tf" %}
+      {# One form per question: radios with the same name only form a group inside their own form, so answers never untick each other. #}
+      <form hx-post="{% url 'quizzes:save-answer' attempt.pk q.pk %}" hx-trigger="change" hx-target="#status-{{ q.pk }}" hx-swap="innerHTML" onsubmit="return false">
+        <fieldset><legend class="muted fs-xs">Choose one</legend>
+        {% for c in q.choices.all %}<label class="opt"><input type="radio" name="choice" value="{{ c.pk }}"{% if item.choice_id == c.pk %} checked{% endif %}> {{ c.text }}</label>{% endfor %}
+        </fieldset>
+      </form>
+    {% else %}
+      <textarea name="text" rows="{% if q.kind == 'essay' %}6{% else %}2{% endif %}" aria-label="Your answer" hx-post="{% url 'quizzes:save-answer' attempt.pk q.pk %}"
+        hx-trigger="input changed delay:700ms, change" hx-target="#status-{{ q.pk }}" hx-swap="innerHTML">{{ item.text }}</textarea>
+    {% endif %}
+    <div class="mt-2 fs-xs" id="status-{{ q.pk }}" aria-live="polite"></div>
+  </section>{% endwith %}{% endfor %}
+  </div>
+  <aside class="attempt-side">
+    {% if left is not None %}<div class="card text-center mb-4"><small class="muted">Time left</small><div class="timer-big" x-text="label" :class="left<60 ? 'text-warn' : ''">{{ left }}</div></div>{% endif %}
+    <div class="card"><h2>Navigation</h2><div class="qnav">{% for item in questions %}<a href="#q{{ item.q.pk }}"{% if item.done %} class="done"{% endif %}>{{ forloop.counter }}</a>{% endfor %}</div>
+    <p class="muted fs-xs mt-3">Filled squares have a saved answer.</p>
+    <form id="finish-form" method="post" action="{% url 'quizzes:finish' attempt.pk %}" onsubmit="return confirm('Submit your answers now? You cannot change them afterwards.')">{% csrf_token %}
+      <button class="btn w-full justify-center mt-3" type="submit">{% icon "check" %}Finish attempt</button></form></div>
+  </aside></div>
+</div>
+<script>
+document.addEventListener("htmx:configRequest",function(){});
+if(window.htmx){htmx.config.responseHandling=[{code:"204",swap:false},{code:"[23]..",swap:true},{code:"409",swap:true,error:false},{code:"[45]..",swap:false,error:true}]}
+document.body.addEventListener("htmx:sendError",function(e){var t=e.detail.target;if(t){t.innerHTML='<span class="pill bad">Not saved. Check your connection.</span>'}});
+</script>
+{% endblock %}

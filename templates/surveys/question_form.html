@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Question · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{% if question %}Edit question{% else %}New question{% endif %}</h1><p class="sub"><a href="{% url 'surveys:editor' survey.pk %}">← {{ survey.title }}</a></p></div></div>
+<form method="post" class="card" novalidate>{% csrf_token %}{% for field in form %}{% include "partials/field.html" %}{% endfor %}
+<p class="muted fs-xs">Choices are used for "Choose one" and "Choose any" only.</p><div class="mt-4"><button class="btn" type="submit">Save question</button></div></form>
+{% endblock %}

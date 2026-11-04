@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Assignments · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Assignments</h1><p class="sub">Everything due in your courses</p></div></div>
+{% if rows %}<div class="grid g4 mb-5"><div class="card stat"><b>{{ stats.week }}</b><span>Due this week</span></div><div class="card stat"><b>{{ stats.overdue }}</b><span>Overdue</span></div><div class="card stat"><b>{{ stats.submitted }}</b><span>Awaiting grading</span></div><div class="card stat"><b>{{ stats.graded }}</b><span>Graded</span></div></div>{% endif %}
+<div class="card">{% if rows %}<table><thead><tr><th>Assignment</th><th>Course</th><th>Due</th><th>Status</th><th class="num">Mark</th></tr></thead><tbody>
+{% for r in rows %}<tr><td><b><a href="{% url 'assignments:detail' r.a.pk %}">{{ r.a.title }}</a></b></td><td>{{ r.a.course.code }}</td><td>{{ r.due|date:"j M, H:i" }}</td>
+<td>{% if r.s and r.s.status == "graded" %}<span class="pill ok">Graded</span>{% elif r.s %}<span class="pill warn">Submitted</span>{% elif r.overdue %}<span class="pill bad">Overdue</span>{% else %}<span class="pill mute">Not submitted</span>{% endif %}</td>
+<td class="num">{% if r.s and r.s.final_mark is not None %}{{ r.s.final_mark|floatformat:"-2" }} / {{ r.a.max_mark|floatformat:"-2" }}{% else %}—{% endif %}</td></tr>{% endfor %}
+</tbody></table>{% else %}<div class="empty">{% icon "check-square" %}<h3>No assignments yet</h3><p>When a lecturer publishes an assignment it will appear here.</p></div>{% endif %}</div>
+{% endblock %}

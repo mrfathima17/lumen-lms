@@ -1,0 +1,30 @@
+{% extends "base.html" %}{% load static lumen %}
+{% block title %}Dashboard · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<h1>{{ greeting }}</h1><p class="sub">{{ sub }}</p>
+<div class="grid g4 mb-5">
+  <div class="card stat"><b>{{ stats.students }}</b><span>Students</span></div>
+  <div class="card stat"><b>{{ stats.submissions }}</b><span>Submissions received</span></div>
+  <div class="card stat"><b>{{ stats.to_grade }}</b><span>Awaiting grading</span></div>
+  <div class="card stat"><b>{{ stats.quizzes }}</b><span>Active quizzes</span></div>
+</div>
+
+<div class="card mb-5"><h2>Quiz manager</h2>
+  {% if quizzes %}<div class="scroll-x"><table><thead><tr><th>Quiz</th><th>Visible to students</th><th>Enabled</th><th>Network restriction</th><th></th></tr></thead><tbody>
+  {% for q in quizzes %}<tr><td><b>{{ q.title }}</b><br><small class="muted">{{ q.course.code }}</small></td>
+    <td><form method="post" action="{% url 'quizzes:action' q.pk 'toggle-visible' %}" class="quiz-toggle">{% csrf_token %}<input type="hidden" name="next" value="{% url 'accounts:lecturer-dashboard' %}"><label class="toggle"><input type="checkbox" data-autosubmit aria-label="Visible to students: {{ q.title }}"{% if q.is_visible %} checked{% endif %}><span></span></label><noscript><button class="btn sm ghost" type="submit">Change</button></noscript></form></td>
+    <td><form method="post" action="{% url 'quizzes:action' q.pk 'toggle-enabled' %}" class="quiz-toggle">{% csrf_token %}<input type="hidden" name="next" value="{% url 'accounts:lecturer-dashboard' %}"><label class="toggle"><input type="checkbox" data-autosubmit aria-label="Enabled: {{ q.title }}"{% if q.is_enabled %} checked{% endif %}><span></span></label><noscript><button class="btn sm ghost" type="submit">Change</button></noscript></form></td>
+    <td>{% if quiz_rules %}<span class="pill ok">Campus network</span>{% else %}<span class="pill mute">None</span>{% endif %}</td>
+    <td class="end"><a class="btn sm ghost" href="{% url 'quizzes:editor' q.pk %}">Edit</a></td></tr>{% endfor %}
+  </tbody></table></div>{% else %}<div class="empty">{% icon "edit" %}<p>{% if has_courses %}No quizzes yet. <a href="{% url 'quizzes:manage-list' %}">Create one</a>.{% else %}Quizzes for your courses appear here.{% endif %}</p></div>{% endif %}</div>
+
+<div class="card"><h2>Recent submissions <a class="feed-link" href="{% url 'assignments:overview' %}">All submissions</a></h2>
+  {% if submissions %}<div class="scroll-x"><table><thead><tr><th>Student</th><th>Assignment</th><th>Submitted</th><th>Status</th><th>Grade</th><th></th></tr></thead><tbody>
+  {% for s in submissions %}<tr><td><span class="avatar sm inline-grid mr-2">{{ s.student.initials }}</span>{{ s.student.get_full_name|default:s.student.username }}</td>
+    <td>{{ s.assignment.title }}<br><small class="muted">{{ s.assignment.course.code }}</small></td><td class="nowrap">{{ s.submitted_at|date:"j M, H:i" }}{% if s.late_days %} <span class="pill bad">Late</span>{% endif %}</td>
+    <td>{% if s.status == "graded" %}<span class="pill ok">Graded</span>{% else %}<span class="pill warn">Needs grading</span>{% endif %}</td>
+    <td class="nowrap">{% if s.final_mark is not None %}{{ s.final_mark|floatformat:"-2" }} / {{ s.assignment.max_mark|floatformat:"-2" }}{% else %}— / {{ s.assignment.max_mark|floatformat:"-2" }}{% endif %}</td>
+    <td class="end"><a class="btn sm{% if s.status == 'graded' %} ghost{% endif %}" href="{% url 'assignments:grade' s.pk %}">{% if s.status == "graded" %}View{% else %}Grade{% endif %}</a></td></tr>{% endfor %}
+  </tbody></table></div>{% else %}<div class="empty">{% icon "upload" %}<p>No submissions yet.</p></div>{% endif %}</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/dashboard.js' %}"></script>{% endblock %}

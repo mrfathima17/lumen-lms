@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Rubric row · {{ a.title }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{% if crit %}Edit row{% else %}New row{% endif %}</h1><p class="sub"><a href="{% url 'assignments:rubric' a.pk %}">← Rubric</a></p></div></div>
+<form method="post" class="card" novalidate>{% csrf_token %}{% for field in form %}{% include "partials/field.html" %}{% endfor %}<div class="mt-4"><button class="btn" type="submit">Save row</button></div></form>
+{% endblock %}

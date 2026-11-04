@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}To-do · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>To-do</h1><p class="sub">Everything due, in one list</p></div>
+<div class="cluster"><button class="btn" type="button" onclick="var d=document.getElementById('add');d.open=true;document.getElementById('t-title').focus()">{% icon "plus" %} Add personal task</button></div></div>
+<div class="grid g4 mb-5"><div class="card stat"><b>{{ stats.week }}</b><span>Due this week</span></div><div class="card stat"><b>{{ stats.overdue }}</b><span>Overdue</span></div><div class="card stat"><b>{{ stats.done }}</b><span>Completed</span></div><div class="card stat"><b>{{ stats.open }}</b><span>Open tasks</span></div></div>
+<details id="add" class="card mb-4"><summary><b>Add personal task</b></summary>
+<form method="post" action="{% url 'schedule:todo-add' %}" novalidate>{% csrf_token %}
+<div class="flex gap-3 mt-3 flex-wrap"><label class="sr-only" for="t-title">Task</label><input id="t-title" name="title" maxlength="200" placeholder="What needs doing?" required class="mw-320"><label class="sr-only" for="t-due">Due date</label><input id="t-due" name="due_date" type="date" class="mw-180"><button class="btn" type="submit">Add</button></div></form></details>
+<div class="grid g2">
+<section class="card self-start"><h2>Coming up</h2>
+{% for r in coming %}<div class="item">
+{% if r.kind == "task" %}<form method="post" action="{% url 'schedule:todo-toggle' r.pk %}">{% csrf_token %}<input class="mt-1" type="checkbox" onchange="this.form.submit()" aria-label="Mark done: {{ r.title }}"></form>
+{% else %}<input class="mt-1" type="checkbox" disabled title="Completes when you hand it in" aria-label="{{ r.title }} completes when you hand it in">{% endif %}
+<div><div class="t">{% if r.kind == "a" %}<a class="ink" href="{% url 'assignments:detail' r.pk %}">{{ r.title }}</a>{% elif r.kind == "q" %}<a class="ink" href="{% url 'quizzes:student-detail' r.pk %}">{{ r.title }}</a>{% else %}{{ r.title }}{% endif %}</div><div class="m">{{ r.sub }}</div></div>
+<span class="ml-auto cluster"><span class="pill {{ r.pill.0 }}">{{ r.pill.1 }}</span>{% if r.kind == "task" %}<form method="post" action="{% url 'schedule:todo-delete' r.pk %}">{% csrf_token %}<button class="btn sm ghost" type="submit" aria-label="Delete: {{ r.title }}">{% icon "trash" %}</button></form>{% endif %}</span></div>
+{% empty %}<div class="empty">{% icon "check-circle" %}<p>Nothing due. Add a personal task above.</p></div>{% endfor %}
+{% if coming %}<p class="muted fs-xs mt-3">Assignments you have not handed in and open quizzes (next 30 days) appear here and tick themselves off when done.</p>{% endif %}</section>
+<section class="card self-start"><h2>Done</h2>
+{% for t in done_items %}<div class="item"><form method="post" action="{% url 'schedule:todo-toggle' t.pk %}">{% csrf_token %}<input class="mt-1" type="checkbox" checked onchange="this.form.submit()" aria-label="Mark not done: {{ t.title }}"></form><div><div class="t strike muted">{{ t.title }}</div><div class="m">Personal</div></div>
+<form class="ml-auto" method="post" action="{% url 'schedule:todo-delete' t.pk %}">{% csrf_token %}<button class="btn sm ghost" type="submit" aria-label="Delete: {{ t.title }}">{% icon "trash" %}</button></form></div>
+{% empty %}<div class="empty">{% icon "check" %}<p>Completed tasks appear here.</p></div>{% endfor %}</section>
+</div>
+{% endblock %}

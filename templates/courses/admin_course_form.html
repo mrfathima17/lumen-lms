@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{% if course %}Edit {{ course.code }}{% else %}New course{% endif %} · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{% if course %}Edit course{% else %}New course{% endif %}</h1><p class="sub"><a href="{% url 'courses:admin-courses' %}">← All courses</a></p></div></div>
+<div class="card mw-640"><form method="post" novalidate>{% csrf_token %}
+  {% for field in form %}{% include "partials/field.html" %}{% endfor %}
+  <div class="cluster"><button class="btn" type="submit">Save course</button><a class="btn ghost" href="{% url 'courses:admin-courses' %}">Cancel</a></div></form></div>
+{% endblock %}

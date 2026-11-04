@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Submissions · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>All submissions</h1><p class="sub">Across every assignment you teach</p></div></div>
+{% if rows %}<div class="grid g4 mb-5"><div class="card stat"><b>{{ stats.pending }}</b><span>Need grading</span></div><div class="card stat"><b>{{ stats.graded }}</b><span>Graded</span></div><div class="card stat"><b>{{ stats.missing }}</b><span>Missing</span></div><div class="card stat"><b>{{ stats.late }}</b><span>Late</span></div></div>{% endif %}
+{% if rows %}<div class="card mb-5"><h2 class="mb-3">Latest submissions</h2>
+<form method="get" class="flex gap-3 mb-4 flex-wrap"><label class="sr-only" for="fa">Assignment</label><select id="fa" name="assignment" class="mw-240" onchange="this.form.submit()"><option value="">All assignments</option>{% for r in rows %}<option value="{{ r.a.pk }}"{% if pick == r.a.pk|stringformat:"s" %} selected{% endif %}>{{ r.a.title }}</option>{% endfor %}</select>
+<label class="sr-only" for="fs">Status</label><select id="fs" name="status" class="mw-180" onchange="this.form.submit()"><option value="">All statuses</option><option value="needs"{% if state == "needs" %} selected{% endif %}>Needs grading</option><option value="graded"{% if state == "graded" %} selected{% endif %}>Graded</option><option value="late"{% if state == "late" %} selected{% endif %}>Late</option></select><noscript><button class="btn ghost" type="submit">Filter</button></noscript></form>
+{% if subs %}<div class="scroll-x"><table><thead><tr><th>Student</th><th>Assignment</th><th>Course</th><th>Submitted</th><th>Status</th><th></th></tr></thead><tbody>
+{% for s in subs %}<tr><td><b>{{ s.student.get_full_name|default:s.student.username }}</b></td><td>{{ s.assignment.title }}</td><td>{{ s.assignment.course.code }}</td><td>{{ s.submitted_at|date:"j M, H:i" }}</td>
+<td>{% if s.status == "graded" %}<span class="pill ok">Graded</span>{% elif s.late_days %}<span class="pill bad">Late</span>{% else %}<span class="pill warn">Needs grading</span>{% endif %}</td>
+<td><a class="btn sm{% if s.status == 'graded' %} ghost{% endif %}" href="{% url 'assignments:grade' s.pk %}">{% if s.status == "graded" %}View{% else %}Grade{% endif %}</a></td></tr>{% endfor %}</tbody></table></div>
+{% else %}<p class="muted">No submissions match.</p>{% endif %}</div>{% endif %}
+<div class="card"><h2 class="mb-3">By assignment</h2>{% if rows %}<table><thead><tr><th>Assignment</th><th>Course</th><th>Due</th><th class="num">Submitted</th><th class="num">To grade</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td><b><a href="{% url 'assignments:detail' r.a.pk %}">{{ r.a.title }}</a></b></td><td>{{ r.a.course.code }}</td><td>{{ r.a.due_at|date:"j M, H:i" }}</td>
+<td class="num">{{ r.got }} / {{ r.total }}</td><td class="num">{% if r.pending %}<span class="pill warn">{{ r.pending }}</span>{% else %}0{% endif %}</td>
+<td><a class="btn sm ghost" href="{% url 'assignments:submissions' r.a.pk %}">Open</a></td></tr>{% endfor %}
+</tbody></table>{% else %}<div class="empty">{% icon "clipboard" %}<h3>No assignments yet</h3><p>Create one from a course page.</p></div>{% endif %}</div>
+{% endblock %}

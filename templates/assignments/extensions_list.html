@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Deadline extensions · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Deadline extensions</h1><p class="sub">Give one student more time on an assignment. Choose the assignment first.</p></div></div>
+<div class="card">{% if rows %}<div class="scroll-x"><table><thead><tr><th>Assignment</th><th>Course</th><th>Due</th><th class="num">Extensions</th><th></th></tr></thead><tbody>
+{% for a in rows %}<tr><td><b>{{ a.title }}</b></td><td>{{ a.course.code }}</td><td>{{ a.due_at|date:"j M Y, H:i" }}{% if a.due_at < now %} <span class="pill mute">Closed</span>{% endif %}</td>
+<td class="num">{% if a.n_ext %}<span class="pill warn">{{ a.n_ext }}</span>{% else %}0{% endif %}</td><td><a class="btn sm ghost" href="{% url 'assignments:extensions' a.pk %}">Manage</a></td></tr>{% endfor %}
+</tbody></table></div>{% else %}<div class="empty">{% icon "timer" %}<h3>No assignments yet</h3><p>Create one from a course page.</p></div>{% endif %}</div>
+{% endblock %}

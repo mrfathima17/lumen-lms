@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Active sessions · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Active sessions</h1><p class="sub">{{ rows|length }} session{{ rows|length|pluralize }} open. People who are signed in right now. Ending a session signs that browser out at once.</p></div></div>
+<div class="notice mb-4">A session lasts up to 8 hours. Disabling an account (Users page) also stops it from signing in again; use this page to remove sessions that are already open.</div>
+<div class="card">{% if rows %}<div class="scroll-x"><table><thead><tr><th>Person</th><th>Role</th><th>Session ends</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td><b>{{ r.user.get_full_name|default:r.user.username }}</b> <span class="muted">{{ r.user.username }}</span>{% if r.mine %} <span class="pill ok">This browser</span>{% endif %}</td><td>{{ r.user.get_role_display }}</td><td class="muted">{{ r.expires|date:"j M Y, g:i A" }}</td>
+<td><div class="cluster">{% if not r.mine %}<form method="post" action="{% url 'administration:session-end' %}">{% csrf_token %}<input type="hidden" name="key" value="{{ r.key }}"><button class="btn sm ghost" type="submit">End session</button></form>{% endif %}
+<form method="post" action="{% url 'administration:sessions-end-user' r.user.pk %}" onsubmit="return confirm('Sign {{ r.user.username|escapejs }} out everywhere?')">{% csrf_token %}<button class="btn sm ghost" type="submit">Sign out everywhere</button></form></div></td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="empty">{% icon "monitor" %}<h3>No sessions</h3><p>Nobody is signed in.</p></div>{% endif %}</div>
+{% endblock %}

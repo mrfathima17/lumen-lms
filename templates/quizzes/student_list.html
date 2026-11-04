@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Quizzes · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Quizzes</h1><p class="sub">Timed quizzes in your courses</p></div></div>
+<div class="card">{% if rows %}<table><thead><tr><th>Quiz</th><th>Course</th><th>Closes</th><th>Status</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td><b><a href="{% url 'quizzes:student-detail' r.quiz.pk %}">{{ r.quiz.title }}</a></b></td><td>{{ r.quiz.course.code }}</td>
+<td>{% if r.quiz.closes_at %}{{ r.quiz.closes_at|date:"j M, H:i" }}{% else %}—{% endif %}</td>
+<td>{% if r.running %}<span class="pill warn">In progress</span>{% elif r.attempts %}<span class="pill ok">Attempted</span>{% elif r.open %}<span class="pill ok">Open</span>{% else %}<span class="pill mute">{{ r.reason }}</span>{% endif %}</td>
+<td><a class="btn sm ghost" href="{% url 'quizzes:student-detail' r.quiz.pk %}">{% if r.running %}Resume{% else %}Open{% endif %}</a></td></tr>{% endfor %}
+</tbody></table>{% else %}<div class="empty">{% icon "edit" %}<h3>No quizzes yet</h3><p>When a lecturer publishes a quiz it will appear here.</p></div>{% endif %}</div>
+{% endblock %}

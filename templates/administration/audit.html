@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Audit log · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Audit log</h1><p class="sub">Who did what, when and from where · kept {{ lumen_site.audit_log_retention_months }} months</p></div><a class="btn ghost" href="{% url 'administration:audit-export' %}{% if qs %}?{{ qs }}{% endif %}">{% icon "download" %} Export CSV</a></div>
+<form method="get" class="card mb-4"><div class="flex gap-3 flex-wrap"><label class="sr-only" for="q">Search</label><input id="q" name="q" value="{{ q }}" placeholder="Search events" class="mw-260">
+<label class="sr-only" for="category">Event type</label><select id="category" name="category" class="mw-220"><option value="">All events</option>{% for key, label in categories %}<option value="{{ key }}"{% if key == category %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+<label class="sr-only" for="user">Username</label><input id="user" name="user" value="{{ who }}" placeholder="Username" class="mw-180"><label class="sr-only" for="since">Since</label><input id="since" name="since" type="date" value="{{ since }}" class="mw-180"><button class="btn" type="submit">Filter</button></div></form>
+<div class="card">{% if page %}<div class="scroll-x"><table class="audit"><thead><tr><th>Time</th><th>User</th><th>Event</th><th>IP address</th><th>Result</th></tr></thead><tbody>
+{% for a in page %}{% with text=a|audit_event %}<tr><td class="nowrap">{{ a.created_at|audit_time }}</td><td>{{ a|audit_user }}</td><td class="audit-event" title="{{ text }}">{{ text }}</td><td class="muted">{{ a.ip_address|default:"—" }}</td><td>{% if a.result == "failed" %}<span class="pill warn">Failed</span>{% elif a.result == "blocked" %}<span class="pill bad">Blocked by IP rule</span>{% else %}<span class="pill ok">Success</span>{% endif %}</td></tr>{% endwith %}{% endfor %}</tbody></table></div>
+{% if page.has_other_pages %}<div class="cluster mt-4">{% if page.has_previous %}<a class="btn sm ghost" href="?{{ qs }}&page={{ page.previous_page_number }}">Newer</a>{% endif %}<span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a class="btn sm ghost" href="?{{ qs }}&page={{ page.next_page_number }}">Older</a>{% endif %}</div>{% endif %}
+{% else %}<div class="empty">{% icon "file-text" %}<h3>No entries</h3><p>Nothing matches these filters.</p></div>{% endif %}</div>
+{% endblock %}

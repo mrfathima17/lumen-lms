@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Quiz manager · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Quiz manager</h1><p class="sub">Create quizzes from a course page, then manage them here</p></div></div>
+<div class="card">{% if quizzes %}<table><thead><tr><th>Quiz</th><th>Course</th><th>Closes</th><th>Visible</th><th>Enabled</th><th></th></tr></thead><tbody>
+{% for q in quizzes %}<tr><td><b><a href="{% url 'quizzes:editor' q.pk %}">{{ q.title }}</a></b></td><td>{{ q.course.code }}</td><td>{% if q.closes_at %}{{ q.closes_at|date:"j M, H:i" }}{% else %}—{% endif %}</td>
+<td>{% if q.is_visible %}<span class="pill ok">Yes</span>{% else %}<span class="pill mute">No</span>{% endif %}</td><td>{% if q.is_enabled %}<span class="pill ok">Yes</span>{% else %}<span class="pill warn">Paused</span>{% endif %}</td>
+<td><a class="btn sm ghost" href="{% url 'quizzes:editor' q.pk %}">Open</a></td></tr>{% endfor %}
+</tbody></table>{% else %}<div class="empty">{% icon "edit" %}<h3>No quizzes yet</h3><p>Open one of your courses and choose New quiz.</p><a class="btn" href="{% url 'courses:my-courses' %}">My courses</a></div>{% endif %}</div>
+{% endblock %}

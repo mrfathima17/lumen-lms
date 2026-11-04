@@ -1,0 +1,8 @@
+{% load lumen %}<aside class="sidebar" aria-label="Main navigation">
+  <div class="logo">{% include "partials/logo_tile.html" %} {{ lumen_site.site_name }}</div>
+  {% for item in items %}{% if item.kind == "section" %}<div class="sec">{{ item.label }}</div>
+  {% elif item.url_name %}<a href="{% url item.url_name %}"{% if item.active %} class="active" aria-current="page"{% endif %}>{% icon item.icon %}<span>{{ item.label }}</span></a>
+  {% else %}<a href="#" aria-disabled="true" tabindex="-1" title="Coming soon">{% icon item.icon %}<span>{{ item.label }}</span></a>{% endif %}{% endfor %}
+  <div class="spacer"></div>
+  <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="signout" type="submit">{% icon "log-out" %}<span>Sign out</span></button></form>
+</aside>

@@ -1,0 +1,8 @@
+{% extends "public_base.html" %}{% load lumen %}
+{% block title %}Choose a new password · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="card mw-480 mx-auto mt-6"><h1>Choose a new password</h1><p class="sub">Pick a password you have not used elsewhere.</p>
+<form method="post" novalidate>{% csrf_token %}
+{% for field in form %}<div class="field{% if field.errors %} invalid{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}{% if field.help_text %}<div class="help">{{ field.help_text|safe }}</div>{% endif %}</div>{% endfor %}
+<button class="btn block" type="submit">Save new password</button></form></div>
+{% endblock %}

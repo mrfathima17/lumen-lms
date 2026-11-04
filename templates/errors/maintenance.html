@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Back soon · {{ lumen_site.site_name }}{% endblock %}
+{% block body %}
+<main id="main" class="center-page"><div class="stack">{% if preview %}<div class="notice mb-4 center-box">Preview: this is how people will see the maintenance page. Nothing has been changed.</div>{% endif %}
+<div class="card center-box"><div class="hero-icon">{% icon "wrench" %}</div><h1>Back soon</h1><p class="sub">{% if preview %}{{ preview_message|default:'Please try again shortly.' }}{% else %}{{ lumen_site.maintenance_message|default:'Please try again shortly.' }}{% endif %}</p><a class="btn ghost" href="{% url 'core:public-home' %}">Refresh</a></div></div></main>
+{% endblock %}

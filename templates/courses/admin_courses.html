@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Courses · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Courses</h1><p class="sub">Create and manage every course</p></div><a class="btn" href="{% url 'courses:admin-course-new' %}">{% icon "plus" %}New course</a></div>
+<form method="get" class="cluster mb-5"><input name="q" value="{{ q }}" placeholder="Search by code or title" aria-label="Search courses" class="mw-280"><button class="btn ghost" type="submit">{% icon "search" %}Search</button></form>
+<div class="card scroll-x">
+{% if courses %}<table><thead><tr><th>Code</th><th>Title</th><th>Lecturer</th><th>Department</th><th>Semester</th><th class="num">Students</th><th>Status</th><th></th></tr></thead><tbody>
+{% for c in courses %}<tr><td><b>{{ c.code }}</b></td><td><a href="{% url 'courses:detail' c.pk %}">{{ c.title }}</a></td><td>{% for l in c.lecturers.all %}{{ l.get_full_name|default:l.username }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="pill warn">Unassigned</span>{% endfor %}</td><td>{{ c.department|default:"—" }}</td><td>{{ c.semester|default:"—" }}</td><td class="num">{{ c.student_count }}</td>
+<td>{% if c.is_visible %}<span class="pill ok">Visible</span>{% else %}<span class="pill warn">Hidden</span>{% endif %}</td><td><div class="cluster end"><a class="btn sm ghost" href="{% url 'courses:admin-course-edit' c.pk %}">Edit</a><a class="btn sm ghost" href="{% url 'administration:bulk-enrolment' %}?course={{ c.pk }}">Enrol</a></div></td></tr>{% endfor %}
+</tbody></table>
+{% else %}<div class="empty">{% icon "book" %}<h3>No courses found</h3><p>{% if q %}Nothing matches your search.{% else %}Create the first course to get started.{% endif %}</p></div>{% endif %}
+</div>
+{% endblock %}

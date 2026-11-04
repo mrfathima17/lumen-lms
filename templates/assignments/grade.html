@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Grade · {{ a.title }}{% endblock %}
+{% block content %}
+{% include "assignments/_grade_head.html" %}
+<div class="grid g2">
+  <section class="card"><h2>Submission</h2>
+    {% include "assignments/_grade_sub.html" %}</section>
+  <form method="post" novalidate>{% csrf_token %}
+    <div class="card mb-4"><h2>Mark</h2>
+      {% for field in form %}{% include "partials/field.html" %}{% endfor %}</div>
+    {% include "assignments/_grade_actions.html" %}</form>
+</div>
+{% endblock %}

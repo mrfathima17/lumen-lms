@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Grade · {{ a.title }}{% endblock %}
+{% block content %}
+{% include "assignments/_grade_head.html" %}
+<form method="post" novalidate>{% csrf_token %}{% if error %}<div class="notice error mb-4">{% icon "alert" %} {{ error }}</div>{% endif %}
+<div class="grid g2">
+  <div><section class="card mb-4"><h2>Submission</h2>{% include "assignments/_grade_sub.html" %}</section>
+    <section class="card"><div class="field"><label for="fb">Feedback to student</label><textarea id="fb" name="feedback" rows="4" placeholder="Write feedback…">{{ feedback }}</textarea></div></section></div>
+  <div>
+  <div class="card mb-4"><h2>Rubric</h2><p class="muted fs-xs">Points earned out of {{ total|floatformat:"-2" }}, scaled to {{ a.max_mark|floatformat:"-2" }}.</p>
+  {% for r in rows %}<fieldset class="rub-row"><legend><b>{{ r.c.title }}</b>{% if r.c.description %} <span class="muted fs-xs">— {{ r.c.description }}</span>{% endif %}</legend>
+    {% for lv in r.levels %}<label class="check-row mt-2"><input type="radio" name="level{{ r.c.pk }}" value="{{ lv.pk }}"{% if r.level_id == lv.pk %} checked{% endif %}> <span><b>{{ lv.label }}</b> · {{ lv.points|floatformat:"-2" }} pt{{ lv.points|pluralize }}{% if lv.description %}<span class="muted fs-xs"> — {{ lv.description }}</span>{% endif %}</span></label>{% endfor %}
+    <input class="mt-2" type="text" name="comment{{ r.c.pk }}" value="{{ r.comment }}" maxlength="500" placeholder="Comment on this row (optional)" aria-label="Comment on {{ r.c.title }}"></fieldset>{% endfor %}</div>
+  {% include "assignments/_grade_actions.html" %}
+  </div></div></form>
+{% endblock %}

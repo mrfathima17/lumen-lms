@@ -1,0 +1,34 @@
+{% load static lumen %}<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}{{ lumen_site.site_name }}{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'css/styles.css' %}">
+{{ lumen_theme|json_script:"lumen-theme-data" }}
+<script src="{% static 'js/theme.js' %}"></script>
+{% block head %}{% endblock %}</head><body>
+{% include "partials/sprite.html" %}
+{% block body %}
+{% if preview_course %}<div class="preview-bar" role="status"><span>{% icon "eye" %} Previewing <b>{{ preview_course.code }}</b> as a student. Nothing you do here is saved.</span><form method="post" action="{% url 'courses:preview-exit' %}">{% csrf_token %}<button class="btn sm" type="submit">Exit preview</button></form></div>{% endif %}
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="layout">
+  {% sidebar %}
+  <main class="main" id="main">
+    <div class="topbar">
+      <form class="search" role="search" method="get" action="{% url 'accounts:search' %}">{% icon "search" %}<input type="search" name="q" maxlength="80" autocomplete="off" aria-label="Search" placeholder="{% if user.role == 'lecturer' %}Search students, courses, quizzes…{% elif user.role == 'admin' %}Search users and courses…{% else %}Search courses and files{% endif %}"></form>
+      <div class="right">
+        <a class="btn ghost sm" href="{% url 'messaging:inbox' %}" aria-label="Messages{% if unread_messages %}, {{ unread_messages }} unread{% endif %}">{% icon "message" %}{% if unread_messages %} <span class="pill bad">{{ unread_messages }}</span>{% endif %}</a>
+        <a class="btn ghost sm" href="{% url 'messaging:notifications' %}" aria-label="Notifications{% if unread_notifications %}, {{ unread_notifications }} unread{% endif %}">{% icon "bell" %}{% if unread_notifications %} <span class="pill bad">{{ unread_notifications }}</span>{% endif %}</a>
+        <button class="btn ghost sm" type="button" data-theme-toggle aria-label="Toggle dark mode"></button>
+        <span class="badge-role">{{ user.get_role_display }}</span>
+        <a class="avatar" href="{% url 'accounts:profile' %}" title="{{ user.get_full_name|default:user.username }} · Profile" aria-label="My profile">{{ user.initials }}</a>
+      </div>
+    </div>
+    {% if lumen_site.maintenance_mode and user.role == "admin" %}<div class="notice mb-4">Maintenance mode is on: only administrators can use the site. <a href="{% url 'administration:settings' %}">Change</a></div>{% endif %}
+    {% if lumen_site.maintenance_upcoming %}<div class="notice mb-4">Scheduled maintenance: {{ lumen_site.site_name }} will be unavailable from {{ lumen_site.maintenance_at|date:"j M Y, g:i A" }}. Please save your work before then.</div>{% endif %}
+    {% if messages %}<ul class="messages">{% for m in messages %}<li class="notice {% if m.tags == 'error' %}error{% elif m.tags == 'success' %}success{% endif %}">{{ m }}</li>{% endfor %}</ul>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% endblock %}
+<script src="{% static 'js/icons.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body></html>

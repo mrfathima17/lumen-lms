@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Question bank · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Question bank</h1><p class="sub">Reusable questions for each course</p></div></div>
+{% if courses %}<div class="card"><table><thead><tr><th>Course</th><th>Questions</th><th></th></tr></thead><tbody>{% for c in courses %}<tr><td><b>{{ c.code }}</b> {{ c.title }}</td><td>{{ c.n }}</td><td><a class="btn sm ghost" href="{% url 'quizzes:bank-list' c.pk %}">Open</a></td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="card empty">{% icon "archive" %}<h3>No courses</h3><p>No course is assigned to you yet.</p></div>{% endif %}
+{% endblock %}

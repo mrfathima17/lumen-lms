@@ -1,0 +1,6 @@
+{% load lumen %}<div class="field{% if field.errors %} invalid{% endif %}">
+  {% if field.widget_type == "checkbox" %}<div class="split"><label for="{{ field.id_for_label }}">{{ field.label }}</label><label class="toggle">{{ field }}<span></span></label></div>
+  {% else %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% endif %}
+  {% for e in field.errors %}<div class="err">{% icon "alert" %}{{ e }}</div>{% endfor %}
+  {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
+</div>

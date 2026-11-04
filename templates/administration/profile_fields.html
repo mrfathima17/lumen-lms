@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Custom profile fields · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Custom profile fields</h1><p class="sub">Extra details kept on each person, such as hostel or study year. Fill them in on the user's page; they are added to the users CSV export.</p></div></div>
+<div class="grid g2"><section class="card"><h2>Fields</h2>
+{% if fields %}<div class="scroll-x"><table class="mt-3"><thead><tr><th>Label</th><th>Key</th><th>Type</th><th>For</th><th class="num">Values</th><th></th></tr></thead><tbody>
+{% for f in fields %}<tr><td><a href="{% url 'administration:profile-field' f.pk %}">{{ f.label }}</a>{% if f.required %} <span class="pill warn">Required</span>{% endif %}{% if not f.is_active %} <span class="pill mute">Hidden</span>{% endif %}</td><td><code>{{ f.key }}</code></td><td>{{ f.get_kind_display }}</td><td>{{ f.get_applies_to_display }}</td><td class="num">{{ f.n }}</td>
+<td><form method="post" action="{% url 'administration:profile-field-delete' f.pk %}" onsubmit="return confirm('Delete this field and the {{ f.n }} value(s) stored in it?')">{% csrf_token %}<button class="btn sm ghost" type="submit" aria-label="Delete {{ f.label }}">{% icon "trash" %}</button></form></td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="empty">{% icon "file-list" %}<h3>No custom fields</h3><p>Add the first one on the right.</p></div>{% endif %}</section>
+<form method="post" class="card" novalidate><h2>Add a field</h2>{% csrf_token %}{% for field in form %}{% include "partials/field.html" %}{% endfor %}<div class="mt-4"><button class="btn" type="submit">Add field</button></div></form></div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Timetable · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Weekly timetable</h1><p class="sub">Week of {{ monday|date:"j" }} – {{ friday|date:"j F Y" }}</p></div>
+<div class="cluster"><a class="btn ghost sm" href="?week={{ week|add:'-1' }}" aria-label="Previous week">{% icon "arrow-left" %}</a><a class="btn ghost sm" href="?week=0">This week</a><a class="btn ghost sm" href="?week={{ week|add:'1' }}" aria-label="Next week">{% icon "arrow" %}</a>
+<a class="btn ghost no-print" href="#" onclick="window.print();return false">{% icon "printer" %} Print</a><a class="btn ghost no-print" href="{% url 'schedule:export-ics' %}">{% icon "download" %} Add to calendar (.ics)</a></div></div>
+{% if slots_exist %}
+<div class="grid g2"><div>
+<div class="scroll-x"><div class="tt" style="grid-template-columns:64px repeat({{ cols|length }},minmax(0,1fr));grid-template-rows:48px repeat({{ rows }},30px)">
+  {% for c in cols %}<div class="hd{% if c.today %} today{% endif %}" style="grid-column:{{ c.col }};grid-row:1">{{ c.name }}<small>{{ c.date|date:"j M" }}</small></div>{% endfor %}
+  {% for h in hours %}<div class="hr" style="grid-column:1;grid-row:{{ h.row }} / span 2">{{ h.label }}</div>{% endfor %}
+  {% for c in cells %}<div class="tc{% if c.today %} today{% endif %}" style="grid-column:{{ c.col }};grid-row:{{ c.row }} / span 2"></div>{% endfor %}
+  {% for e in events %}<div class="e tone-{{ e.tone }}" style="grid-column:{{ e.col }};grid-row:{{ e.row }} / span {{ e.span }}"><b>{{ e.slot.course.code }}</b><br>{{ e.slot.course.title }}<br><span class="fade">{{ e.slot.get_kind_display }}{% if e.slot.room %} · {{ e.slot.room }}{% endif %} · {{ e.slot.start_time|time:"g:i" }}–{{ e.slot.end_time|time:"g:i A" }}</span></div>{% endfor %}
+</div></div></div>
+<div>
+<div class="card mb-4"><h2>Today · {{ today|date:"D j M" }}</h2>
+  {% for s in todays %}<div class="item"><span class="ico">{% icon "clock" %}</span><div><div class="t">{{ s.course.title }} · {{ s.get_kind_display }}</div><div class="m">{{ s.start_time|time:"g:i" }} – {{ s.end_time|time:"g:i A" }}{% if s.room %} · {{ s.room }}{% endif %}</div></div></div>
+  {% empty %}<p class="muted mt-2">No classes today.</p>{% endfor %}
+  {% if up_next %}<div class="item"><span class="ico">{% icon "arrow" %}</span><div><div class="t">Up next · {{ up_next.get_weekday_display|slice:":3" }} {{ up_next.start_time|time:"g:i A" }}</div><div class="m">{{ up_next.course.title }} · {{ up_next.get_kind_display }}</div></div></div>{% endif %}</div>
+<div class="card"><h2>Courses</h2>
+  {% for c in courses %}<div class="item"><span class="ico tone-{{ c.tone }}"></span><div><div class="t">{{ c.code }} · {{ c.title }}</div><div class="m">{% for l in c.lecturers.all %}{{ l.get_full_name|default:l.username }}{% if not forloop.last %}, {% endif %}{% endfor %}</div></div>
+  {% if staff %}<a class="btn sm ghost ml-auto" href="{% url 'schedule:course-timetable' c.pk %}">Edit</a>{% endif %}</div>{% endfor %}</div>
+</div></div>
+{% else %}<div class="card empty">{% icon "clock" %}<h3>No classes scheduled</h3><p>{% if staff %}Add the weekly classes of a course from its page (Timetable button).{% else %}Your lecturers add classes to the timetable; they appear here.{% endif %}</p></div>{% endif %}
+{% endblock %}

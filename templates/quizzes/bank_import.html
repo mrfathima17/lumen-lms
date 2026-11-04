@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Import questions · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Import questions</h1><p class="sub"><a href="{% url 'quizzes:bank-list' course.pk %}">← {{ course.code }} question bank</a></p></div></div>
+<div class="grid g2"><form method="post" enctype="multipart/form-data" class="card self-start">{% csrf_token %}<h2>1 · Upload file</h2><div class="dropzone mb-4"><div class="hero-icon sm">{% icon "download" %}</div><b class="ink">Choose a CSV file</b><br><span class="fs-xs">Nothing is saved until you have seen the check</span><div class="mt-3"><label class="sr-only" for="f">CSV file</label><input id="f" type="file" name="file" accept=".csv" required></div></div><button class="btn" type="submit">Preview import</button></form>
+<section class="card self-start"><h2>Format help</h2><p class="sub mb-3">CSV columns:</p><code class="codeblock">{{ columns|join:", " }}</code><ul class="plain mt-3 fs-sm"><li><b>kind</b>: mcq, tf, short or essay.</li><li><b>mcq</b>: fill choice1 to choice4 (at least two) and put the number of the right one in <b>correct</b>.</li><li><b>tf</b>: correct is true or false.</li><li><b>short</b>: list accepted answers in <b>accepted</b>, separated by a vertical bar (|).</li><li>Nothing is saved until you have seen the check.</li></ul>
+<a class="btn ghost mt-3" href="{% url 'quizzes:bank-template' %}">{% icon "download" %}Download example</a></section></div>
+{% endblock %}

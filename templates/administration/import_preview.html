@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Check import · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Check import</h1><p class="sub"><a href="{% url 'administration:import' %}">← Choose another file</a></p></div></div>
+<div class="grid g3 mb-5"><div class="card stat"><b>{{ rows|length }}</b><span>Rows</span></div><div class="card stat"><b>{{ ok }}</b><span>Ready to create</span></div><div class="card stat"><b>{{ bad }}</b><span>With problems (skipped)</span></div></div>
+<div class="card mb-4"><div class="scroll-x"><table><thead><tr><th>Line</th><th>Username</th><th>Name</th><th>Role</th><th>Courses</th><th>Result</th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.line }}</td><td>{{ r.username|default:"—" }}</td><td>{{ r.first_name }} {{ r.last_name }}</td><td>{{ r.role|default:"?" }}</td><td>{{ r.courses|default:"—" }}</td>
+<td>{% if r.errors %}<span class="pill bad">Skipped</span> <span class="fs-xs">{{ r.errors|join:"; " }}</span>{% else %}<span class="pill ok">Ready</span>{% endif %}</td></tr>{% endfor %}</tbody></table></div></div>
+{% if ok %}<form method="post" action="{% url 'administration:import-confirm' %}">{% csrf_token %}<input type="hidden" name="text" value="{{ text }}"><button class="btn" type="submit">Create {{ ok }} user{{ ok|pluralize }}</button>{% if bad %} <span class="muted fs-sm">The {{ bad }} row{{ bad|pluralize }} with problems will be skipped.</span>{% endif %}</form>
+{% else %}<div class="notice error">No row can be imported. Fix the file and upload it again.</div>{% endif %}
+{% endblock %}

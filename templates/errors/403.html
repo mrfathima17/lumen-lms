@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Access denied · {{ lumen_site.site_name }}{% endblock %}
+{% block body %}
+<main id="main" class="center-page"><div class="card center-box"><div class="big fw-semi brand">403</div><h1>Access denied</h1><p class="sub">You do not have permission to view this page.</p>
+<a class="btn" href="{% if user.is_authenticated %}{% url user.home_url_name %}{% else %}{% url 'core:public-home' %}{% endif %}">Go back</a> <a class="btn ghost" href="{% url 'core:help' %}">Contact support</a></div></main>
+{% endblock %}

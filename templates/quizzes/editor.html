@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{{ quiz.title }} · editor{% endblock %}
+{% block content %}
+<div class="page-header"><div><span class="pill mute">{{ quiz.course.code }}</span>{% if not quiz.is_visible %} <span class="pill warn">Hidden</span>{% endif %}{% if not quiz.is_enabled %} <span class="pill warn">Paused</span>{% endif %}
+  <h1 class="mt-2">{{ quiz.title }}</h1><p class="sub">{{ questions|length }} question{{ questions|length|pluralize }} · {{ total|floatformat:"-2" }} marks · {% if quiz.time_limit_minutes %}{{ quiz.time_limit_minutes }} min{% else %}no time limit{% endif %}</p></div>
+  <div class="cluster"><a class="btn ghost" href="{% url 'quizzes:edit' quiz.pk %}">{% icon "settings" %}Settings</a><a class="btn ghost" href="{% url 'quizzes:attempts' quiz.pk %}">{% icon "users" %}Attempts ({{ attempt_count }})</a>
+    <a class="btn ghost" href="{% url 'quizzes:bank-list' quiz.course_id %}">{% icon "archive" %}Question bank</a>
+    {% if not locked %}<a class="btn" href="{% url 'quizzes:question-new' quiz.pk %}">{% icon "plus" %}Add question</a>{% endif %}</div></div>
+<div class="grid g2"><div>
+{% for q in questions %}<section class="qb"><div class="top"><span class="n">Q{{ forloop.counter }}</span><span class="muted fs-xs">{{ q.get_kind_display }} · {{ q.marks|floatformat:"-2" }} mark{{ q.marks|pluralize }}</span>
+  <span class="acts"><form method="post" action="{% url 'quizzes:question-to-bank' q.pk %}">{% csrf_token %}<button class="btn sm ghost" title="Keep a copy in the question bank">{% icon "archive" %}To bank</button></form>
+  {% if not locked %}<a class="btn sm ghost" href="{% url 'quizzes:question-edit' q.pk %}">Edit</a>
+  <form method="post" action="{% url 'quizzes:question-delete' q.pk %}" onsubmit="return confirm('Delete this question?')">{% csrf_token %}<button class="btn sm danger">Delete</button></form>{% endif %}</span></div>
+  <p class="mt-2 fw-semi">{{ q.text|linebreaksbr }}</p>
+  {% for c in q.choices.all %}<p class="mt-2">{% if c.is_correct %}{% icon "check-circle" %}{% else %}<span class="icon-gap"></span>{% endif %} {{ c.text }}</p>{% endfor %}
+  {% if q.kind == "short" %}<p class="muted fs-xs mt-2">{% if q.accepted_answers %}Accepted: {{ q.accepted_answers|linebreaksbr }}{% else %}Marked by hand{% endif %}</p>{% elif q.kind == "essay" %}<p class="muted fs-xs mt-2">Marked by hand</p>{% endif %}
+</section>{% empty %}<div class="card empty">{% icon "edit" %}<h3>No questions yet</h3><p>Add the first question to make the quiz available.</p><a class="btn" href="{% url 'quizzes:question-new' quiz.pk %}">Add question</a></div>{% endfor %}
+</div>
+<div class="card self-start"><h2>Quiz status</h2>
+  <div class="stack mt-3">
+  <form method="post" action="{% url 'quizzes:action' quiz.pk 'toggle-visible' %}">{% csrf_token %}<button class="btn sm ghost w-full justify-center">{% if quiz.is_visible %}Hide from students{% else %}Show to students{% endif %}</button></form>
+  <form method="post" action="{% url 'quizzes:action' quiz.pk 'toggle-enabled' %}">{% csrf_token %}<button class="btn sm ghost w-full justify-center">{% if quiz.is_enabled %}Pause quiz{% else %}Enable quiz{% endif %}</button></form>
+  {% if quiz.effective_review_policy == "manual" %}<form method="post" action="{% url 'quizzes:action' quiz.pk 'release-review' %}">{% csrf_token %}<button class="btn sm ghost w-full justify-center">{% if quiz.review_released %}Hide answers again{% else %}Release answers to students{% endif %}</button></form>{% endif %}</div>
+  <dl class="kv mt-4"><dt>Opens</dt><dd>{% if quiz.opens_at %}{{ quiz.opens_at|date:"j M, g:i A" }}{% else %}Open now{% endif %}</dd><dt>Closes</dt><dd>{% if quiz.closes_at %}{{ quiz.closes_at|date:"j M, g:i A" }}{% else %}No closing date{% endif %}</dd><dt>Attempts</dt><dd>{{ quiz.max_attempts }} per student</dd></dl>
+  {% if locked %}<p class="muted fs-xs mt-3">Students have started this quiz, so questions are locked to keep marks fair.</p>{% endif %}</div>
+</div>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}New topic · {{ course.code }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>New topic</h1><p class="sub"><a href="{% url 'messaging:forum' course.pk %}">← {{ course.code }} forum</a></p></div></div>
+<form method="post" class="card mw-640" novalidate>{% csrf_token %}{% for field in form %}{% include "partials/field.html" %}{% endfor %}<div class="mt-4"><button class="btn" type="submit">Post topic</button></div></form>
+{% endblock %}

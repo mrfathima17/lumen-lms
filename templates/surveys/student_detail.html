@@ -1,0 +1,34 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{{ survey.title }} · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<small class="muted"><a href="{% url 'courses:detail' survey.course.pk %}">{{ survey.course.code }}</a> / <a href="{% url 'surveys:student-list' %}">Activities</a></small>
+<div class="page-header"><div><h1>{{ survey.title }}</h1><p class="sub">{{ survey.course.code }} · {{ survey.course.title }} · {{ survey.get_kind_display }}{% if survey.kind != "poll" and questions %} · about {{ questions|length|add:"1" }} minutes{% endif %}</p></div>{% if can_edit %}<a class="btn ghost" href="{% url 'surveys:editor' survey.pk %}">{% icon "edit" %} Edit {{ survey.get_kind_display|lower }}</a>{% endif %}</div>
+<div class="grid g2">
+<div>
+{% if survey.description %}<div class="card mb-4"><p>{{ survey.description|linebreaksbr }}</p></div>{% endif %}
+{% if answered %}<div class="card mb-4 text-center"><div class="fs-display">{% icon "check-circle" %}</div><h2>Thank you!</h2><p class="sub">Your answers were saved.{% if survey.anonymous %} They are stored without your name.{% endif %}</p></div>
+{% elif state == "open" %}
+<form method="post" id="sv" novalidate>{% csrf_token %}
+{% for q in questions %}<fieldset class="card mb-4{% if q.pk in errors %} invalid{% endif %}"><legend class="sr-only">{{ q.text }}</legend><h2>{% if survey.kind != "poll" %}{{ forloop.counter }}. {% endif %}{{ q.text }}{% if q.required and survey.kind != "poll" %} <span class="muted fs-xs">required</span>{% endif %}</h2>{% if survey.kind == "poll" %}<p class="sub mb-3">{% if q.kind == "multiple" %}Pick one or more options.{% else %}Pick one option.{% endif %} {% if survey.show_results == "after_vote" %}Results appear after you vote.{% elif survey.show_results == "after_close" %}Results appear after the poll closes.{% endif %}</p>{% endif %}
+{% if q.kind == "single" %}{% for c in q.choice_list %}<label class="po"><input type="radio" name="q{{ q.pk }}" value="{{ c }}"{% if c in kept|get:q.pk %} checked{% endif %}> {{ c }}</label>{% endfor %}
+{% elif q.kind == "multiple" %}{% for c in q.choice_list %}<label class="po"><input type="checkbox" name="q{{ q.pk }}" value="{{ c }}"{% if c in kept|get:q.pk %} checked{% endif %}> {{ c }}</label>{% endfor %}
+{% elif q.kind == "rating" %}<div class="lkh"><span>Strongly disagree</span><span>Strongly agree</span></div><div class="sc">{% for i in "12345" %}<label><input type="radio" name="q{{ q.pk }}" value="{{ i }}"{% if i in kept|get:q.pk %} checked{% endif %}><span>{{ i }}</span></label>{% endfor %}</div>
+{% else %}<textarea name="q{{ q.pk }}" rows="4" maxlength="2000" aria-label="{{ q.text }}">{% for t in kept|get:q.pk %}{{ t }}{% endfor %}</textarea>{% endif %}
+{% if q.pk in errors %}<div class="err">{% icon "alert" %}{{ errors|get_one:q.pk }}</div>{% endif %}
+{% if survey.kind == "poll" %}<button class="btn mt-3" type="submit" data-need="1">Submit my vote</button>{% endif %}</fieldset>{% endfor %}
+</form>
+{% elif state == "closed" %}<div class="card mb-4"><span class="pill mute">Closed</span> This is no longer open for answers.</div>
+{% else %}<div class="card mb-4"><span class="pill mute">Not open yet</span> It opens {{ survey.opens_at|date:"j M, H:i" }}.</div>{% endif %}
+{% if results %}<h2 class="mt-5 mb-3">Results ({{ results.total }} answer{{ results.total|pluralize }})</h2>{% include "surveys/_results.html" with staff=False %}{% endif %}
+</div>
+{% if state == "open" and not answered and survey.kind != "poll" %}<div class="self-start"><div class="card mb-4"><h2>Your progress</h2><div class="progress mt-3"><i id="pg-bar" style="width:0"></i></div><p class="muted fs-xs mt-2 mb-3" id="pg-txt"></p><button class="btn block" type="submit" form="sv">Send answers</button></div>
+<div class="card"><h2>{{ survey.get_kind_display }} details</h2>{% include "surveys/_details.html" %}</div></div>
+{% else %}<div class="card self-start"><h2>{{ survey.get_kind_display }} details</h2>{% include "surveys/_details.html" %}</div>{% endif %}
+</div>
+<script>(function(){var f=document.getElementById('sv');if(!f)return;var bar=document.getElementById('pg-bar'),txt=document.getElementById('pg-txt');
+var qs=[].slice.call(f.querySelectorAll('fieldset'));function ans(fs){var el=fs.querySelectorAll('input,textarea');for(var i=0;i<el.length;i++){var e=el[i];if((e.type==='radio'||e.type==='checkbox')?e.checked:e.value.trim())return true}return false}
+function upd(){var req=qs.filter(function(q){return q.querySelector('h2 .muted')||f.querySelector('button[data-need]')}),n=req.filter(ans).length,all=req.length;
+if(bar){bar.style.width=(all?100*n/all:0)+'%';txt.textContent=n+' of '+all+' required answered'}
+[].slice.call(document.querySelectorAll('button[type=submit][form=sv], #sv button[type=submit]')).forEach(function(b){b.disabled=all>0&&n<all})}
+f.addEventListener('change',upd);f.addEventListener('input',upd);upd()})();</script>
+{% endblock %}

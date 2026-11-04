@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Settings · {{ course.code }} · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+{% include "courses/_head.html" %}
+<form method="post" novalidate>{% csrf_token %}
+<div class="grid g2">
+<section class="card"><h2>General</h2>
+{% include "partials/field.html" with field=form.title %}{% include "partials/field.html" with field=form.summary %}{% include "partials/field.html" with field=form.credits %}
+<dl class="kv mt-3"><dt class="muted">Course code</dt><dd>{{ course.code }}</dd><dt class="muted">Department</dt><dd>{{ course.department|default:"—" }}</dd><dt class="muted">Semester</dt><dd>{{ course.semester|default:"—" }}</dd></dl>
+{% if user.role == "admin" %}<p class="muted fs-xs mt-3"><a href="{% url 'courses:admin-course-edit' course.pk %}">Change code, department, semester or lecturers</a></p>{% else %}<p class="muted fs-xs mt-3">An administrator changes the code, department, semester and lecturers.</p>{% endif %}</section>
+<section class="card"><h2>Access</h2>
+{% include "partials/field.html" with field=form.is_visible %}{% include "partials/field.html" with field=form.allow_self_enrol %}{% include "partials/field.html" with field=form.enrol_key %}
+<p class="muted fs-xs">With enrolment turned off, students are added by you or an administrator.</p></section>
+</div>
+<div class="mt-4"><button class="btn" type="submit">Save settings</button></div>
+</form>
+{% endblock %}

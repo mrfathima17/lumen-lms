@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Plugins & modules · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Plugins &amp; modules</h1><p class="sub">Switch optional parts of the site on or off for everyone</p></div></div>
+<div class="notice mb-4">Courses, assignments, grades, messages, announcements and notifications are always on. A module you switch off disappears from the menus and its pages show “switched off”. Nothing is deleted: switch it back on and all the data is there.</div>
+<form method="post" class="card" novalidate>{% csrf_token %}
+{% for r in rows %}<div class="split item"><div><div class="t"><label for="m-{{ r.key }}">{{ r.label }}</label></div><div class="m">{{ r.desc }}</div></div>
+<label class="toggle"><input id="m-{{ r.key }}" type="checkbox" name="enabled" value="{{ r.key }}"{% if r.on %} checked{% endif %} aria-label="{{ r.label }} enabled"><span></span></label></div>{% endfor %}
+<div class="mt-4"><button class="btn" type="submit">Save</button></div></form>
+{% endblock %}

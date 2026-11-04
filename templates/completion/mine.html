@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Course completion · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Course completion</h1><p class="sub">What each course asks of you. When every rule is met, your certificate unlocks.</p></div><a class="btn ghost" href="{% url 'completion:certificates' %}">{% icon "award" %} My certificates</a></div>
+{% if rows %}<div class="grid g2">{% for r in rows %}<section class="card"><div class="split"><div><span class="pill mute">{{ r.course.code }}</span><h2 class="mt-2">{{ r.course.title }}</h2></div>
+{% if r.certificate %}<span class="pill ok">Completed</span>{% elif r.result.tracked %}<span class="pill {% if r.result.complete %}ok{% else %}warn{% endif %}">{{ r.result.met }} of {{ r.result.total }} rules</span>{% else %}<span class="pill mute">Not tracked</span>{% endif %}</div>
+{% if r.result.tracked %}<div class="progress"><i class="{% if r.result.complete %}bg-ok{% endif %}" style="width:{{ r.result.percent }}%"></i></div>{% else %}<p class="muted mt-3">Your lecturer has not set completion rules for this course.</p>{% endif %}
+<p class="mt-3"><a class="btn sm ghost" href="{% url 'completion:mine-course' r.course.pk %}">See the rules</a>{% if r.certificate %} <a class="btn sm" href="{% url 'completion:pdf' r.certificate.code %}">{% icon "download" %} Certificate</a>{% endif %}</p></section>{% endfor %}</div>
+{% else %}<div class="card empty">{% icon "check-circle" %}<h3>No courses yet</h3><p>Enrol in a course to see its completion rules.</p></div>{% endif %}
+{% endblock %}

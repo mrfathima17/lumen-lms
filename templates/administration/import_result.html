@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Import complete · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Import complete</h1><p class="sub">{{ creds|length }} user{{ creds|length|pluralize }} created · <a href="{% url 'administration:users' %}">Go to users</a></p></div></div>
+{% if creds %}{% include "administration/_credentials.html" %}{% else %}<div class="card empty">{% icon "users" %}<h3>Nothing was created</h3></div>{% endif %}
+{% endblock %}

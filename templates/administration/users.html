@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Users · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Users</h1><p class="sub">{{ page.paginator.count }} account{{ page.paginator.count|pluralize }}</p></div>
+<div class="cluster"><a class="btn ghost" href="{% url 'administration:users-export' %}?{{ qs }}">{% icon "download" %} Export CSV</a><a class="btn ghost" href="{% url 'administration:import' %}">{% icon "upload" %} Bulk import</a><a class="btn" href="{% url 'administration:user-new' %}">{% icon "plus" %} New user</a></div></div>
+<div class="grid g4 mb-5"><div class="card stat"><b>{{ stats.students }}</b><span>Students</span></div><div class="card stat"><b>{{ stats.lecturers }}</b><span>Lecturers</span></div><div class="card stat"><b>{{ stats.admins }}</b><span>Admins</span></div><div class="card stat"><b>{{ stats.pending }}</b><span>Pending first login</span></div></div>
+<form method="get" class="card mb-4"><div class="flex gap-3 flex-wrap"><label class="sr-only" for="q">Search</label><input id="q" name="q" value="{{ q }}" placeholder="Search name, username, email, index number" class="mw-320">
+<label class="sr-only" for="role">Role</label><select id="role" name="role" class="mw-180"><option value="">All roles</option>{% for v, l in roles %}<option value="{{ v }}"{% if role == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+<label class="sr-only" for="status">Status</label><select id="status" name="status" class="mw-180"><option value="">Any status</option><option value="active"{% if status == "active" %} selected{% endif %}>Active</option><option value="disabled"{% if status == "disabled" %} selected{% endif %}>Disabled</option></select>
+<button class="btn" type="submit">Filter</button></div></form>
+<div class="card">{% if page %}<div class="scroll-x"><table><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Index no.</th><th>Status</th><th></th></tr></thead><tbody>
+{% for u in page %}<tr><td><div class="flex gap-3 items-center"><div class="avatar sm">{{ u.initials }}</div><div><b>{{ u.get_full_name|default:"—" }}</b><br><span class="muted fs-xs">{{ u.email|default:"no email" }}</span></div></div></td><td>{{ u.username }}</td><td><span class="pill mute">{{ u.get_role_display }}</span></td><td>{{ u.index_number|default:"—" }}</td>
+<td>{% if u.is_active %}<span class="pill ok">Active</span>{% else %}<span class="pill bad">Disabled</span>{% endif %}{% if u.must_change_password %} <span class="pill warn">Pending first login</span>{% endif %}</td><td><a class="btn sm ghost" href="{% url 'administration:user-edit' u.pk %}">Edit</a> <a class="btn sm ghost" href="{% url 'administration:user-activity' u.pk %}">Activity</a></td></tr>{% endfor %}</tbody></table></div>
+{% if page.has_other_pages %}<div class="cluster mt-4">{% if page.has_previous %}<a class="btn sm ghost" href="?{{ qs }}&page={{ page.previous_page_number }}">Previous</a>{% endif %}<span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a class="btn sm ghost" href="?{{ qs }}&page={{ page.next_page_number }}">Next</a>{% endif %}</div>{% endif %}
+{% else %}<div class="empty">{% icon "users" %}<h3>No users match</h3><p>Try a different search or filter.</p></div>{% endif %}</div>
+{% endblock %}

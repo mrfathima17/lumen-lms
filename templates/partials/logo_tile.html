@@ -1,0 +1,1 @@
+{% if lumen_site.logo %}<i class="has-img" style="background-image:url('{% url 'core:brand-asset' 'logo' %}?v={{ lumen_site.logo_version }}')" role="img" aria-label="{{ lumen_site.site_name }} logo"></i>{% else %}<i>{{ lumen_site.site_name|slice:":1"|upper }}</i>{% endif %}

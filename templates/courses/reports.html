@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Reports · {{ course.code }} · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+{% include "courses/_head.html" %}
+<div class="grid g4 mb-5">
+<div class="card stat"><b>{% if r.average is None %}—{% else %}{{ r.average }}%{% endif %}</b><span>Average grade{% if r.graded %} · {{ r.graded }} of {{ r.students }} graded{% endif %}</span></div>
+<div class="card stat"><b>{% if r.completion_rate is None %}—{% else %}{{ r.completion_rate }}%{% endif %}</b><span>Completion rate</span></div>
+{% if show_attendance %}<div class="card stat"><b>{% if r.attendance is None %}—{% else %}{{ r.attendance }}%{% endif %}</b><span>Attendance</span></div>{% endif %}
+<div class="card stat"><b>{{ r.at_risk|length }}</b><span>Students at risk</span></div>
+</div>
+<div class="grid g2 mb-4">
+<section class="card"><h2>Grade distribution</h2>
+{% if r.dist %}<div class="chart mt-4">{% for d in r.dist %}<div class="bar-fill" style="height:{{ d.pct|default:2 }}%" title="{{ d.count }} student{{ d.count|pluralize }}"><span class="text-center fs-xs muted bar-label">{{ d.label }} · {{ d.count }}</span></div>{% endfor %}</div>
+{% else %}<div class="empty">{% icon "bar-chart" %}<p>Appears once students have marks and a grade scale exists.</p></div>{% endif %}</section>
+{% if show_quizzes %}<section class="card"><h2>Most missed questions</h2>
+{% if r.missed %}<table class="mt-3"><thead><tr><th>Question</th><th class="num">Correct</th></tr></thead><tbody>{% for m in r.missed %}<tr><td>{{ m.text }}<br><span class="muted fs-xs">{{ m.quiz }} · {{ m.n }} answers</span></td><td class="num"><span class="pill {% if m.pct < 50 %}bad{% elif m.pct < 70 %}warn{% else %}ok{% endif %}">{{ m.pct }}%</span></td></tr>{% endfor %}</tbody></table>
+{% else %}<div class="empty">{% icon "help" %}<p>Needs at least 3 marked answers to a question.</p></div>{% endif %}</section>{% endif %}
+</div>
+<section class="card mb-4"><h2>Weekly activity</h2><p class="muted fs-xs">Assignments handed in and quizzes finished, last 6 weeks (week starting).</p>
+<div class="chart mt-4">{% for w in r.weeks %}<div class="bar-fill" style="height:{{ w.pct|default:2 }}%" title="{{ w.count }}"><span class="text-center fs-xs muted bar-label">{{ w.label }}</span></div>{% endfor %}</div></section>
+<section class="card"><h2>Students at risk</h2><p class="muted fs-xs">Course mark below 50%{% if show_attendance %} or attendance below the warning level{% endif %}.</p>
+{% if r.at_risk %}<table class="mt-3"><tbody>{% for s in r.at_risk %}<tr><td><a href="{% url 'accounts:person' s.pk %}">{{ s.get_full_name|default:s.username }}</a> <span class="muted">{{ s.username }}</span></td></tr>{% endfor %}</tbody></table>
+{% else %}<div class="empty">{% icon "check" %}<p>Nobody is flagged.</p></div>{% endif %}</section>
+{% endblock %}

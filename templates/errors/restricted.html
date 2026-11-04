@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Access restricted · {{ lumen_site.site_name }}{% endblock %}
+{% block body %}
+<main id="main" class="center-page"><div class="card center-box"><div class="hero-icon">{% icon "lock" %}</div><h1>Access restricted</h1><p class="sub">This area can only be opened from an approved network, such as the campus network or an exam hall.</p>
+{% if client_ip %}<p class="mb-5">Your IP address: <b>{{ client_ip }}</b></p>{% endif %}
+<a class="btn" href="{% url 'core:public-home' %}">Back to home</a><p class="sub mt-4">Think this is a mistake? Contact your administrator.</p></div></main>
+{% endblock %}

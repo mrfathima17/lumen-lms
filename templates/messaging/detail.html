@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{{ msg.subject }} · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="card mail has-chat">
+  {% include "messaging/_mail_list.html" %}
+  <div class="chat">
+    <div class="pane-head split"><div><a class="back-link" href="{% url 'messaging:inbox' %}">{% icon "arrow-left" %}</a><b>{{ other.get_full_name|default:other.username }}</b><br><small class="muted">{{ msg.subject }} · {{ other.get_role_display }}</small></div>
+      <form method="post" action="{% url 'messaging:delete' msg.pk %}" onsubmit="return confirm('Delete this message from your mailbox?')">{% csrf_token %}<button class="btn ghost danger sm" type="submit">{% icon "trash" %} Delete</button></form></div>
+    <div class="msgs">{% for m in thread %}<div class="b{% if m.sender_id == user.pk %} me{% endif %}">{{ m.body|linebreaksbr }}<small class="b-time">{{ m.created_at|date:"D j M, g:i A" }}</small></div>{% endfor %}</div>
+    {% if can_reply %}<form method="post" action="{% url 'messaging:reply' msg.pk %}" class="comp" novalidate>{% csrf_token %}
+      <label class="sr-only" for="{{ form.body.id_for_label }}">Your reply</label>{{ form.body }}<button class="btn" type="submit">Send</button></form>
+    {% else %}<div class="notice m-3">You can no longer message this person (you no longer share a course).</div>{% endif %}
+  </div>
+</div>
+{% endblock %}

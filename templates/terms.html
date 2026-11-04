@@ -1,0 +1,8 @@
+{% extends base_tpl %}{% load lumen %}
+{% block title %}Terms & privacy · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Terms &amp; privacy</h1><p class="sub">How {{ lumen_site.site_name }} may be used and how your information is handled</p></div><div class="cluster"><button class="btn ghost no-print" type="button" onclick="window.print()">{% icon "printer" %} Print</button></div></div>
+<div class="tabs">{% for k, label in tabs %}<a href="?tab={{ k }}"{% if k == tab %} class="on"{% endif %}>{{ label }}</a>{% endfor %}</div>
+<div class="notice mb-4">Sample wording to show the layout. Your institution should replace it with its own reviewed policy text.</div>
+<div class="card"><h2>{{ title }}</h2>{% for h, text in sections %}<h3 class="terms-h">{{ h }}</h3><p>{{ text }}</p>{% endfor %}</div>
+{% endblock %}

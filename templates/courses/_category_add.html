@@ -1,0 +1,9 @@
+{% load lumen %}<form method="post" class="cat-add" novalidate>{% csrf_token %}<input type="hidden" name="kind" value="{{ kind }}">
+  <div class="cat-add-row">
+    <div class="grow"><label class="sr-only" for="{{ form.name.id_for_label }}">Name</label>{{ form.name }}</div>
+    {% if kind == "department" and faculties %}<div class="mw-200">{{ form.faculty }}</div>{% endif %}
+    <button class="btn" type="submit">Add</button>
+  </div>
+  {% if kind == "semester" %}<div class="cat-add-row mt-2"><div class="grow">{{ form.start_date }}</div><span class="muted">to</span><div class="grow">{{ form.end_date }}</div></div>{% endif %}
+  {% for f in form %}{% for e in f.errors %}<div class="field invalid"><div class="err">{% icon "alert" %}{{ e }}</div></div>{% endfor %}{% endfor %}
+</form>

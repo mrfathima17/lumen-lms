@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{% if item %}Edit weight{% else %}Add item{% endif %} · {{ course.code }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{% if item %}Edit {{ item.title }}{% else %}Add gradebook item{% endif %}</h1><p class="sub"><a href="{% url 'grading:gradebook' course.pk %}">← Gradebook</a></p></div></div>
+<div class="card mw-640"><form method="post" novalidate {% if not item %}x-data="{ kind: '{{ form.kind.value|default:'assignment' }}' }"{% endif %}>{% csrf_token %}
+  {% if item %}{% for field in form %}{% include "partials/field.html" %}{% endfor %}
+  {% else %}
+  <div class="field"><label for="{{ form.kind.id_for_label }}">Type</label><select name="kind" id="{{ form.kind.id_for_label }}" x-model="kind">{% for v, l in form.fields.kind.choices %}{% if v %}<option value="{{ v }}">{{ l }}</option>{% endif %}{% endfor %}</select></div>
+  <div x-show="kind==='assignment'">{% with field=form.assignment %}{% include "partials/field.html" %}{% endwith %}</div>
+  <div x-show="kind==='quiz'">{% with field=form.quiz %}{% include "partials/field.html" %}{% endwith %}</div>
+  {% with field=form.title %}{% include "partials/field.html" %}{% endwith %}
+  <div x-show="kind==='manual'">{% with field=form.max_mark %}{% include "partials/field.html" %}{% endwith %}</div>
+  {% with field=form.weight %}{% include "partials/field.html" %}{% endwith %}
+  {% endif %}
+  <div class="cluster"><button class="btn" type="submit">Save</button><a class="btn ghost" href="{% url 'grading:gradebook' course.pk %}">Cancel</a></div></form></div>
+{% endblock %}
+{% block scripts %}{% load static %}<script defer src="{% static 'js/alpine.min.js' %}"></script>{% endblock %}

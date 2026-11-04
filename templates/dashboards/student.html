@@ -1,0 +1,37 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Dashboard · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{{ greeting }}</h1><p class="sub">{{ sub }}</p></div><a class="btn ghost" href="{% url 'accounts:customise-dashboard' %}">{% icon "layout" %} Customise</a></div>
+<div class="dash">
+{% for b in blocks %}
+{% if b.id == "stats" %}<div class="full"><div class="grid g4">
+  <div class="card stat"><b>{{ stats.courses }}</b><span>Enrolled courses</span></div>
+  <div class="card stat"><b>{{ stats.due }}</b><span>Assignments due</span></div>
+  <div class="card stat"><b>{{ stats.quizzes }}</b><span>Open quizzes</span></div>
+  <div class="card stat"><b>{% if stats.gpa is None %}—{% else %}{{ stats.gpa }}{% endif %}</b><span>Cumulative GPA</span></div>
+</div></div>
+{% elif b.id == "courses" %}<div class="full"><h2>My courses</h2>
+{% if cards %}<div class="grid g3 mb-5">
+{% for c in cards %}<div class="card course"><div class="cover">{{ c.course.code }}</div>
+  <div class="body"><h3>{{ c.course.title }}</h3><p class="caption">{% if c.course.semester %}{{ c.course.semester.name }}{% else %}{{ c.course.department|default:"—" }}{% endif %}</p>
+  {% if c.progress is not None %}<div class="progress" role="progressbar" aria-label="{{ c.course.title }} progress" aria-valuenow="{{ c.progress }}" aria-valuemin="0" aria-valuemax="100"><i style="width:{{ c.progress }}%"></i></div>{% else %}<div class="progress" aria-hidden="true"></div>{% endif %}
+  <div class="meta">{% if c.lecturer %}<a class="lec" href="{% url 'accounts:person' c.lecturer.pk %}"><span class="avatar sm">{{ c.lecturer.initials }}</span>{{ c.lecturer.get_full_name|default:c.lecturer.username }}</a>{% else %}<span class="muted">No lecturer yet</span>{% endif %}<a href="{% url 'courses:detail' c.course.pk %}">Open course</a></div></div></div>{% endfor %}
+</div>{% else %}<div class="card empty mb-5">{% icon "book" %}<h3>No courses yet</h3><p>Find a course in the <a href="{% url 'courses:catalog' %}">catalog</a>, or ask your lecturer to enrol you.</p></div>{% endif %}</div>
+{% elif b.id == "deadlines" %}<div class="card"><h2>Upcoming deadlines</h2>
+    {% if deadlines %}<div class="scroll-x"><table><thead><tr><th>Task</th><th>Course</th><th>Due</th><th>Status</th></tr></thead><tbody>
+    {% for d in deadlines %}<tr><td><b>{% if d.kind == "a" %}<a class="ink" href="{% url 'assignments:detail' d.pk %}">{{ d.title }}</a>{% else %}<a class="ink" href="{% url 'quizzes:student-detail' d.pk %}">{{ d.title }}</a>{% endif %}</b></td><td>{{ d.course }}</td><td class="nowrap">{{ d.at|date:"D, j M" }}</td><td><span class="pill {{ d.level }}">{{ d.label }}</span></td></tr>{% endfor %}
+    </tbody></table></div>{% else %}<div class="empty">{% icon "check-circle" %}<p>No deadlines in the next two weeks.</p></div>{% endif %}</div>
+{% elif b.id == "announcements" %}<div class="card"><h2>Announcements <a class="feed-link" href="{% url 'messaging:announcements' %}">View all</a></h2>
+    {% for a in announcements %}<div class="item"><div><div class="t">{{ a.title }}</div><div class="m">{{ a.author.get_full_name|default:a.author.username }} · {{ a.created_at|timesince }} ago</div></div></div>
+    {% empty %}<div class="empty">{% icon "megaphone" %}<p>No announcements yet.</p></div>{% endfor %}</div>
+{% elif b.id == "today" %}<div class="card"><h2>Today's classes <a class="feed-link" href="{% url 'schedule:timetable' %}">Timetable</a></h2>
+    {% for s in classes_today %}<div class="item"><span class="ico">{% icon "clock" %}</span><div><div class="t">{{ s.course.title }} · {{ s.get_kind_display }}</div><div class="m">{{ s.start_time|time:"g:i A" }} – {{ s.end_time|time:"g:i A" }}{% if s.room %} · {{ s.room }}{% endif %}</div></div></div>{% endfor %}
+    {% if class_next %}<div class="item"><span class="ico">{% icon "next" %}</span><div><div class="t">Next: {{ class_next.1.course.title }} · {{ class_next.1.get_kind_display }}</div><div class="m">{{ class_next.0 }} {{ class_next.1.start_time|time:"g:i A" }} – {{ class_next.1.end_time|time:"g:i A" }}{% if class_next.1.room %} · {{ class_next.1.room }}{% endif %}</div></div></div>{% endif %}
+    {% if not classes_today and not class_next %}<div class="empty">{% icon "clock" %}<p>No classes on your timetable.</p></div>{% endif %}</div>
+{% elif b.id == "progress" %}<div class="card"><h2>Course progress <a class="feed-link" href="{% url 'completion:mine' %}">Details</a></h2>
+    {% for c in tracked %}<div class="prog-row{% if forloop.last %} last{% endif %}"><span>{{ c.course.title }}</span><b>{{ c.progress }}%</b></div><div class="progress" role="progressbar" aria-label="{{ c.course.title }}" aria-valuenow="{{ c.progress }}" aria-valuemin="0" aria-valuemax="100"><i style="width:{{ c.progress }}%"></i></div>
+    {% empty %}<div class="empty">{% icon "check-circle" %}<p>Your lecturers have not set completion rules yet.</p></div>{% endfor %}</div>
+{% endif %}
+{% empty %}<div class="card empty full">{% icon "layout" %}<h3>Everything is hidden</h3><p><a href="{% url 'accounts:customise-dashboard' %}">Choose what to show</a>.</p></div>{% endfor %}
+</div>
+{% endblock %}

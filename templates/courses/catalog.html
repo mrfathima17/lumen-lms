@@ -1,0 +1,35 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Course catalog · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Course catalog</h1><p class="sub">Browse and enrol in available courses</p></div>
+<form method="get" class="cluster">
+  <input name="q" value="{{ q }}" placeholder="Search by code or title" aria-label="Search courses" class="mw-280">
+  <select name="department" aria-label="Department"><option value="">All departments</option>{% for d in departments %}<option value="{{ d.pk }}"{% if dept == d.pk|stringformat:"s" %} selected{% endif %}>{{ d.name }}</option>{% endfor %}</select>
+  <button class="btn ghost" type="submit">{% icon "search" %}Search</button>
+</form></div>
+{% if courses %}
+<div class="grid g3">
+  {% for c in courses %}
+  <article class="card course">
+    <div class="cover tone-{{ c.tone }}">{{ c.code }}</div>
+    <div class="body">
+      <h3>{% if c.pk in mine %}<a href="{% url 'courses:detail' c.pk %}">{{ c.title }}</a>{% else %}{{ c.title }}{% endif %}</h3>
+      <small class="muted">{{ c.department|default:"No department" }}{% if c.semester %} · {{ c.semester }}{% endif %} · {{ c.credits }} credits</small>
+      <div class="meta">
+        {% if c.pk in mine %}<span>{% icon "check" %} You are enrolled</span><a class="btn sm ghost" href="{% url 'courses:detail' c.pk %}">Open</a>
+        {% elif c.allow_self_enrol %}
+        {% if c.enrol_key %}<span>Key required {% icon "key" %}</span><button class="btn sm" type="button" onclick="document.getElementById('key-{{ c.pk }}').showModal()">Enrol</button>
+        <dialog id="key-{{ c.pk }}" class="modal"><form method="post" action="{% url 'courses:self-enrol' c.pk %}" novalidate>{% csrf_token %}<h2>Enrol in {{ c.title }}</h2><p class="sub mb-3">Some courses need an enrolment key from your lecturer.</p>
+          <div class="field"><label for="k{{ c.pk }}">Enrolment key</label><input id="k{{ c.pk }}" name="key" autocomplete="off" required></div>
+          <div class="cluster end"><button class="btn ghost" type="button" onclick="this.closest('dialog').close()">Cancel</button><button class="btn" type="submit">Enrol</button></div></form></dialog>
+        {% else %}<span>Open enrolment</span><form method="post" action="{% url 'courses:self-enrol' c.pk %}">{% csrf_token %}<button class="btn sm" type="submit">Enrol</button></form>{% endif %}
+        {% else %}<span>Enrolment by your lecturer</span>{% endif %}
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card empty">{% icon "search" %}<h3>No courses found</h3><p>Try a different search or clear the department filter.</p><a class="btn ghost" href="{% url 'courses:catalog' %}">Clear filters</a></div>
+{% endif %}
+{% endblock %}

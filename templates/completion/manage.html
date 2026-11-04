@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{{ course.code }} completion · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{{ course.title }}</h1><p class="sub"><a href="{% url 'courses:detail' course.pk %}">← {{ course.code }}</a> · Completion and certificates</p></div>
+<form method="post" action="{% url 'completion:issue-all' course.pk %}">{% csrf_token %}<button class="btn" type="submit"{% if not pending %} disabled{% endif %}>{% icon "award" %} Issue certificates{% if pending %} ({{ pending }}){% endif %}</button></form></div>
+<div class="grid g2">
+<form method="post" class="card" novalidate><h2>Rules</h2><p class="muted fs-xs">A student completes the course when every rule you switch on is met. Leave a percentage empty to switch that rule off.</p>{% csrf_token %}{% for field in form %}{% include "partials/field.html" %}{% endfor %}<div class="mt-4"><button class="btn" type="submit">Save rules</button></div></form>
+<section class="card"><h2>Progress</h2>
+{% if rule.any_rule %}<p class="mt-3"><span class="pill ok">{{ done }} of {{ rows|length }} students complete</span></p>
+{% if rows %}<div class="scroll-x"><table class="mt-3"><thead><tr><th>Student</th><th>Rules met</th><th>Certificate</th></tr></thead><tbody>
+{% for r in rows %}<tr><td>{{ r.student.get_full_name|default:r.student.username }}</td><td>{{ r.result.met }} of {{ r.result.total }}{% if r.result.complete %} <span class="pill ok">Complete</span>{% endif %}</td>
+<td>{% if r.certificate %}{% if r.certificate.is_valid %}<span class="pill ok">Issued</span>{% else %}<span class="pill bad">Revoked</span>{% endif %} <a class="btn sm ghost" href="{% url 'completion:pdf' r.certificate.code %}">PDF</a>
+{% if r.certificate.is_valid %}<form method="post" action="{% url 'completion:revoke' r.certificate.pk %}" class="inline" onsubmit="return confirm('Revoke this certificate? It will show as not valid.')">{% csrf_token %}<button class="btn sm ghost" type="submit">Revoke</button></form>{% endif %}{% else %}<span class="muted">—</span>{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<p class="muted mt-3">No students enrolled.</p>{% endif %}
+{% else %}<div class="empty">{% icon "check-circle" %}<h3>No rules switched on</h3><p>Turn on at least one rule to start tracking completion.</p></div>{% endif %}</section></div>
+{% endblock %}

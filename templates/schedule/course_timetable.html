@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Timetable · {{ course.code }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Course timetable</h1><p class="sub"><a href="{% url 'courses:detail' course.pk %}">{{ course.code }} · {{ course.title }}</a></p></div></div>
+<div class="grid g2">
+<section class="card"><h2>Weekly classes</h2>
+{% if slots %}<table class="mt-3"><thead><tr><th>Day</th><th>Time</th><th>Type</th><th>Room</th><th></th></tr></thead><tbody>
+{% for s in slots %}<tr><td>{{ s.get_weekday_display }}</td><td>{{ s.start_time|time:"g:i A" }} – {{ s.end_time|time:"g:i A" }}</td><td>{{ s.get_kind_display }}</td><td>{{ s.room|default:"—" }}</td>
+<td><form method="post" action="{% url 'schedule:slot-delete' s.pk %}">{% csrf_token %}<button class="btn sm danger ghost" type="submit">Remove</button></form></td></tr>{% endfor %}</tbody></table>
+{% else %}<div class="empty">{% icon "clock" %}<h3>No classes yet</h3><p>Add each weekly lecture, lab or tutorial. Students see them on their timetable and calendar.</p></div>{% endif %}</section>
+<form method="post" class="card" novalidate><h2>Add a class</h2>{% csrf_token %}
+{% for field in form %}{% include "partials/field.html" %}{% endfor %}
+<div class="mt-4"><button class="btn" type="submit">Add class</button></div></form></div>
+{% endblock %}

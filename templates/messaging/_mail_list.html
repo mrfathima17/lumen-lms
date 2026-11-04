@@ -1,0 +1,10 @@
+{% load lumen %}<div class="list">
+  <div class="list-head"><div class="cluster"><a class="btn sm {% if box != 'inbox' %}ghost{% endif %}" href="{% url 'messaging:inbox' %}">Inbox{% if unread_messages %} ({{ unread_messages }}){% endif %}</a><a class="btn sm {% if box != 'sent' %}ghost{% endif %}" href="{% url 'messaging:sent' %}">Sent</a></div>
+    <a class="btn sm" href="{% url 'messaging:compose' %}">{% icon "plus" %} New</a></div>
+  {% for m in page %}{% if box == "sent" %}{% with who=m.recipient %}
+  <a class="it{% if msg and m.pk == msg.pk %} on{% endif %}" href="{% url 'messaging:detail' m.pk %}"><span class="avatar sm">{{ who.get_full_name|default:who.username|slice:":1"|upper }}</span><div class="grow"><b>{{ who.get_full_name|default:who.username }}</b><br><small>{{ m.subject }}</small></div><small class="when">{{ m.created_at|date:"j M" }}</small></a>{% endwith %}
+  {% else %}{% with who=m.sender %}
+  <a class="it{% if msg and m.pk == msg.pk %} on{% endif %}" href="{% url 'messaging:detail' m.pk %}"><span class="avatar sm">{{ who.get_full_name|default:who.username|slice:":1"|upper }}</span><div class="grow">{% if not m.read_at %}<b>{{ who.get_full_name|default:who.username }}</b>{% else %}{{ who.get_full_name|default:who.username }}{% endif %}<br><small>{{ m.subject }}</small></div>{% if not m.read_at %}<span class="dot" aria-label="Unread"></span>{% else %}<small class="when">{{ m.created_at|date:"j M" }}</small>{% endif %}</a>{% endwith %}{% endif %}
+  {% empty %}<div class="empty">{% icon "message" %}<h3>{% if box == "sent" %}Nothing sent yet{% else %}Your inbox is empty{% endif %}</h3><p>Messages appear here.</p></div>{% endfor %}
+  {% if page.has_other_pages %}<div class="cluster list-foot">{% if page.has_previous %}<a class="btn sm ghost" href="?page={{ page.previous_page_number }}">Newer</a>{% endif %}<span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a class="btn sm ghost" href="?page={{ page.next_page_number }}">Older</a>{% endif %}</div>{% endif %}
+</div>

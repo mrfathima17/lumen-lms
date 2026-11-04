@@ -1,0 +1,3 @@
+# Adds the MySQL driver on top of the normal requirements. Needs build tools on Windows; the SQLite setup does not need it.
+-r requirements.txt
+mysqlclient>=2.2

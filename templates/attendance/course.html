@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Attendance · {{ course.code }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Attendance</h1><p class="sub"><a href="{% url 'courses:detail' course.pk %}">{{ course.code }} · {{ course.title }}</a> · warning below {{ limit }}%</p></div>
+<div class="cluster"><a class="btn ghost" href="{% url 'attendance:export' course.pk %}">{% icon "download" %} Export CSV</a><a class="btn" href="{% url 'attendance:session-new' course.pk %}">{% icon "plus" %} New session</a></div></div>
+<div class="grid g2 mb-5">
+<section class="card"><h2>Sessions</h2>
+{% if sessions %}<table class="mt-3"><thead><tr><th>Date</th><th>Session</th><th class="num">Marked</th><th></th></tr></thead><tbody>
+{% for s in sessions %}<tr><td>{{ s.held_on|date:"D j M Y" }}{% if s.start_time %}, {{ s.start_time|time:"g:i A" }}{% endif %}</td><td>{{ s.title }}</td><td class="num">{{ s.records.count }}</td><td><a class="btn sm ghost" href="{% url 'attendance:sheet' s.pk %}">Open sheet</a></td></tr>{% endfor %}</tbody></table>
+{% else %}<div class="empty">{% icon "calendar-check" %}<h3>No sessions yet</h3><p>Create a session for each lecture or lab, then mark who came.</p></div>{% endif %}</section>
+<section class="card"><h2>Students</h2>
+{% if rows %}<table class="mt-3"><thead><tr><th>Student</th><th class="num">Attended</th><th>Attendance</th></tr></thead><tbody>
+{% for r in rows %}<tr><td><b>{{ r.student.get_full_name|default:r.student.username }}</b><br><span class="muted fs-xs">{{ r.student.username }}</span></td><td class="num">{{ r.stats.attended }} / {{ r.stats.counted }}</td><td>{% if r.stats.percent is None %}<span class="pill mute">No data</span>{% else %}<span class="pill {{ r.level }}">{{ r.stats.percent|floatformat:"-1" }}%</span>{% endif %}</td></tr>{% endfor %}</tbody></table>
+<p class="muted fs-xs mt-3">Present and late count as attended; excused sessions are left out.</p>
+{% else %}<div class="empty">{% icon "users" %}<p>No students are enrolled yet.</p></div>{% endif %}</section></div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}{% load static lumen %}
+{% block title %}Theme & branding · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<form method="post" id="theme-form" novalidate>{% csrf_token %}
+<div class="page-header">
+  <div><h1>Theme &amp; branding</h1><p class="sub">Changes preview live on this page. Press Save to keep them for everyone.</p></div>
+  <div class="cluster"><button class="btn ghost" type="submit" name="reset" value="1" formnovalidate onclick="return confirm('Reset the name, logo, colours, font and backgrounds to the Lumen defaults?')">Reset to default</button><button class="btn" type="submit">Save theme</button></div>
+</div>
+
+<div class="grid g2">
+<div>
+  <div class="card mb-4"><h2>Identity</h2>
+    <div class="field{% if form.site_name.errors %} invalid{% endif %}"><label for="siteName">Site name</label><input id="siteName" name="site_name" maxlength="80" value="{{ form.site_name.value|default_if_none:'' }}">{% include "partials/errs.html" with errors=form.site_name.errors %}</div>
+    <div class="field{% if form.logo_data.errors %} invalid{% endif %}"><label for="logoFile">Logo</label>
+      <div class="lg"><div class="box" id="logoBox" data-src="{% if obj.logo %}{% url 'core:brand-asset' 'logo' %}?v={{ obj.logo_version }}{% endif %}"></div>
+        <div><input class="mw-260" type="file" id="logoFile" accept="image/png,image/jpeg,image/webp"><br><button class="btn ghost sm mt-2" type="button" id="logoClear">Remove logo</button></div></div>
+      <input type="hidden" name="logo_data" id="logoData"><input type="hidden" name="remove_logo" id="removeLogo">
+      <small class="muted">Square image works best. It is shrunk to 128 px.</small>
+      {% include "partials/errs.html" with errors=form.logo_data.errors %}</div></div>
+
+  <div class="card mb-4"><h2>Colours</h2>
+    <p class="sub mb-3">Quick presets</p><div class="sw" id="presets"></div>
+    <div class="row">
+      <div class="field{% if form.brand_color.errors %} invalid{% endif %}"><label for="brandT">Primary colour</label><div class="cp"><input type="color" id="brand" aria-label="Pick the primary colour"><input type="text" id="brandT" name="brand_color" maxlength="7" autocomplete="off" spellcheck="false" value="{{ form.brand_color.value|default_if_none:'' }}"></div>{% include "partials/errs.html" with errors=form.brand_color.errors %}</div>
+      <div class="field{% if form.brand_color2.errors %} invalid{% endif %}"><label for="brand2T">Secondary (gradient) colour</label><div class="cp"><input type="color" id="brand2" aria-label="Pick the secondary colour"><input type="text" id="brand2T" name="brand_color2" maxlength="7" autocomplete="off" spellcheck="false" value="{{ form.brand_color2.value|default_if_none:'' }}"></div>{% include "partials/errs.html" with errors=form.brand_color2.errors %}</div>
+    </div>
+    <div class="field{% if form.sidebar_color.errors %} invalid{% endif %}"><label for="sidebarT">Sidebar colour</label><div class="cp"><input type="color" id="sidebar" aria-label="Pick the sidebar colour"><input type="text" id="sidebarT" name="sidebar_color" maxlength="7" autocomplete="off" spellcheck="false" value="{{ form.sidebar_color.value|default_if_none:'' }}"></div>{% include "partials/errs.html" with errors=form.sidebar_color.errors %}</div>
+    <p class="muted fs-xs m-0">Colours that make text hard to read are refused.</p></div>
+
+  <div class="card mb-4"><h2>Typography &amp; shape</h2>
+    <div class="field{% if form.font.errors %} invalid{% endif %}"><label for="font">Font</label><select id="font" name="font">{% for value, label in form.font.field.choices %}<option value="{{ value }}"{% if form.font.value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+      <small class="muted">Web fonts load from Google Fonts, so they need an internet connection.</small>{% include "partials/errs.html" with errors=form.font.errors %}</div>
+    <div class="field{% if form.radius.errors %} invalid{% endif %}"><label for="radius">Corner roundness: <b id="radiusV">{{ form.radius.value }}</b> px</label><input class="p-0" type="range" id="radius" name="radius" min="4" max="24" step="1" value="{{ form.radius.value|default_if_none:12 }}">{% include "partials/errs.html" with errors=form.radius.errors %}</div></div>
+
+  <div class="card mb-4"><h2>Login page background</h2>
+    <div class="bgs" id="bgs"></div>
+    <input type="hidden" name="login_bg" id="loginBg" value="{{ form.login_bg.value|default_if_none:'' }}">
+    <input type="hidden" name="login_bg_data" id="loginBgData"><input type="hidden" name="remove_login_image" id="removeLoginImage">
+    <div class="row"><div class="field"><label for="bgColor">Solid colour</label><input class="color-input" type="color" id="bgColor" value="#312e81"></div>
+    <div class="field"><label for="bgFile">Or upload an image</label><input type="file" id="bgFile" accept="image/png,image/jpeg,image/webp"></div></div>
+    {% include "partials/errs.html" with errors=form.login_bg.errors %}{% include "partials/errs.html" with errors=form.login_bg_data.errors %}
+    <button class="btn ghost sm" type="button" id="bgClear">Use default background</button></div>
+
+  <div class="card"><h2>Dark mode</h2>
+    <div class="split mb-4"><span id="allowDarkLabel">Let users switch to dark mode</span><label class="toggle"><input type="checkbox" id="allowDark" name="allow_dark_mode" aria-labelledby="allowDarkLabel"{% if form.allow_dark_mode.value %} checked{% endif %}><span></span></label></div>
+    <div class="field"><label for="defaultMode">Default for new users</label><select id="defaultMode" name="default_mode">{% for value, label in form.default_mode.field.choices %}<option value="{{ value }}"{% if form.default_mode.value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <p class="sub m-0">Users can still choose their own with the {% icon "moon" %} button at the top of every page.</p></div>
+</div>
+
+<div class="stick">
+  <div class="card mb-4"><h2>Preview · login</h2>
+    <div class="pvl"><div class="flex items-center gap-3 fw-semi fs-lg"><span class="lg"><span class="box w-30" id="pvLogo" style="height:30px;border-radius:8px;font-size:var(--fs-md)"></span></span><span id="pvName">{{ lumen_site.site_name }}</span></div>
+    <div><div class="fs-xl fw-semi" style="line-height:1.2">Learn, teach and manage</div><div class="mt-1 fade">Welcome back</div></div></div></div>
+  <div class="card"><h2>Preview · app</h2>
+    <div class="pva"><div class="sb"><span class="a"></span><span></span><span></span><span></span></div>
+      <div class="bd"><div class="flex gap-2 mb-3"><button class="btn sm" type="button">Primary</button><button class="btn ghost sm" type="button">Secondary</button></div>
+        <div class="card p-3"><b>Database Systems</b><div class="progress"><i style="width:72%"></i></div><div class="mt-3"><span class="pill ok">Open</span> <span class="pill warn">Due soon</span></div></div></div></div></div>
+</div></div>
+</form>
+{{ options|json_script:"theme-options" }}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/theme-admin.js' %}"></script>{% endblock %}

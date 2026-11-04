@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{{ res.title }} · {{ course.code }} · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<small class="muted"><a href="{% url 'courses:detail' course.pk %}">{{ course.code }}</a> / {{ res.topic.title }}</small>
+<div class="page-header"><div><h1>{{ res.title }}</h1><p class="sub">{{ res.topic.title }} · {% if res.kind == "file" %}{{ filename }}{% else %}Link{% endif %}{% if res.description %} · {{ res.description }}{% endif %}</p></div>
+<div class="cluster">{% if not manage %}<form method="post" action="{% url 'content:done' res.pk %}">{% csrf_token %}<button class="btn{% if is_done %} ghost{% endif %}" type="submit">{% icon "check" %} {% if is_done %}Done · undo{% else %}Mark as done{% endif %}</button></form>{% endif %}{% if res.kind == "file" %}<a class="btn ghost" href="{% url 'content:download' res.pk %}">{% icon "download" %} Download</a>{% else %}<a class="btn ghost" href="{{ res.url }}" target="_blank" rel="noopener noreferrer">{% icon "arrow" %} Open link</a>{% endif %}</div></div>
+<div class="grid g2 viewer">
+<div class="card p-0 clip">
+{% if preview == "pdf" %}<object class="viewer-frame" data="{% url 'content:raw' res.pk %}" type="application/pdf" aria-label="{{ res.title }}"><div class="empty">{% icon "file-text" %}<p>Your browser cannot show this PDF here.</p><a class="btn" href="{% url 'content:download' res.pk %}">Download it</a></div></object>
+{% elif preview == "image" %}<img class="viewer-img" src="{% url 'content:raw' res.pk %}" alt="{{ res.title }}">
+{% elif preview == "video" %}<video class="viewer-frame" controls preload="metadata" src="{% url 'content:raw' res.pk %}"></video>
+{% elif res.kind == "link" %}<div class="empty viewer-empty">{% icon "arrow" %}<h3>{{ res.title }}</h3><p class="muted">{{ res.url }}</p><a class="btn" href="{{ res.url }}" target="_blank" rel="noopener noreferrer">Open link</a></div>
+{% else %}<div class="empty viewer-empty">{% icon "file-text" %}<h3>{{ filename }}</h3><p>This kind of file cannot be shown in the browser. Download it to open it.</p><a class="btn" href="{% url 'content:download' res.pk %}">{% icon "download" %} Download</a></div>{% endif %}
+{% if total > 1 %}<div class="split viewer-pager"><span>{% if prev_id %}<a class="btn sm ghost" href="{% url 'content:view' prev_id %}">← Prev</a>{% endif %}</span><span class="muted">Item {{ pos }} / {{ total }}</span><span>{% if next_id %}<a class="btn sm ghost" href="{% url 'content:view' next_id %}">Next →</a>{% endif %}</span></div>{% endif %}
+</div>
+<div class="card self-start"><h2>In this topic</h2>
+{% for s in siblings %}<div class="item"><span class="ico">{% if s.kind == "file" %}{% icon "file-text" %}{% else %}{% icon "arrow" %}{% endif %}</span><div class="t">{% if s.pk == res.pk %}<b>{{ s.title }}</b>{% else %}<a href="{% url 'content:view' s.pk %}">{{ s.title }}</a>{% endif %}{% if s.pk in done_ids %} <span class="pill ok">Done</span>{% endif %}</div></div>{% endfor %}
+{% for a in assignments %}<div class="item"><span class="ico">{% icon "upload" %}</span><div class="t"><a href="{% url 'assignments:detail' a.pk %}">{{ a.title }}</a></div></div>{% endfor %}
+<hr class="sep"><a class="btn ghost" href="{% url 'courses:detail' course.pk %}">← Back to course</a></div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}{{ topic.title }} · {{ topic.course.code }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>{{ topic.title }}</h1><p class="sub"><a href="{% url 'messaging:forum' topic.course_id %}">← {{ topic.course.code }} forum</a>{% if topic.pinned %} · Pinned{% endif %}{% if topic.locked %} · Locked{% endif %}</p></div>
+{% if manage %}<div class="cluster">
+<form method="post" action="{% url 'messaging:topic-flag' topic.pk 'pinned' %}">{% csrf_token %}<button class="btn ghost sm" type="submit">{% if topic.pinned %}Unpin{% else %}Pin{% endif %}</button></form>
+<form method="post" action="{% url 'messaging:topic-flag' topic.pk 'locked' %}">{% csrf_token %}<button class="btn ghost sm" type="submit">{% if topic.locked %}Unlock{% else %}Lock{% endif %}</button></form>
+<form method="post" action="{% url 'messaging:topic-delete' topic.pk %}" onsubmit="return confirm('Delete this topic and all its posts?')">{% csrf_token %}<button class="btn ghost danger sm" type="submit">{% icon "trash" %} Delete topic</button></form></div>{% endif %}</div>
+<div class="card mb-4">{% for p in posts %}<div class="post"><span class="avatar">{{ p.author.get_full_name|default:p.author.username|slice:":1"|upper }}</span>
+  <div class="grow"><div><b>{{ p.author.get_full_name|default:p.author.username }}</b> <span class="pill mute">{{ p.author.get_role_display }}</span></div><div class="meta">{{ p.created_at|date:"D j M Y, g:i A" }}</div>
+  <p class="mt-2">{{ p.body|linebreaksbr }}</p></div>
+  {% if not forloop.first and p.author_id == user.pk or not forloop.first and manage %}<form method="post" action="{% url 'messaging:post-delete' p.pk %}">{% csrf_token %}<button class="btn sm ghost" type="submit" aria-label="Delete this post">{% icon "trash" %}</button></form>{% endif %}</div>{% endfor %}</div>
+{% if can_reply %}<form method="post" class="card mw-640" novalidate>{% csrf_token %}{% for field in form %}{% include "partials/field.html" %}{% endfor %}<div class="mt-4"><button class="btn" type="submit">Post reply</button></div></form>
+{% else %}<div class="notice">This topic is locked. Only lecturers can reply.</div>{% endif %}
+{% endblock %}

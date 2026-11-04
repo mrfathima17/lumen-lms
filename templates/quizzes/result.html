@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Result · {{ quiz.title }}{% endblock %}
+{% block content %}
+<small class="muted"><a href="{% url 'courses:detail' quiz.course.pk %}">{{ quiz.course.code }}</a> / <a href="{% url 'quizzes:student-detail' quiz.pk %}">{{ quiz.title }}</a></small>
+<h1>{{ quiz.title }} · Result</h1>
+<p class="sub">Attempt {{ attempt.number }}{% if attempt.submitted_at %} · completed {{ attempt.submitted_at|date:"j M, H:i" }}{% endif %}{% if attempt.submitted_at %} · time taken {{ attempt.taken_label }}{% endif %}</p>
+<div class="grid g2 attempt-grid">
+<div>
+{% if review %}
+{% for r in rows %}<section class="rq {% if r.a and r.a.awarded is not None and r.a.awarded == r.q.marks %}ok{% elif r.a and r.a.awarded is not None and r.a.awarded > 0 %}part{% elif r.a and r.a.awarded is not None or not r.a %}bad{% endif %}">
+  <p class="q-n">Question {{ forloop.counter }} · {{ r.q.marks|floatformat:"-2" }} mark{{ r.q.marks|pluralize }}</p><p class="q-text mt-2">{{ r.q.text|linebreaksbr }}</p>
+  {% if r.q.kind == "mcq" or r.q.kind == "tf" %}{% for c in r.q.choices.all %}<p class="mt-2">{% if c.is_correct %}{% icon "check-circle" %}{% else %}<span class="icon-gap"></span>{% endif %} {{ c.text }}
+    {% if r.a and r.a.choice_id == c.pk %}<span class="pill {% if c.is_correct %}ok{% else %}bad{% endif %}">Your answer</span>{% endif %}</p>{% endfor %}
+  {% else %}<p class="mt-2"><b>Your answer:</b> {{ r.a.text|default:"No answer"|linebreaksbr }}</p>
+    {% if r.q.kind == "short" and r.q.accepted_answers %}<p class="muted fs-xs mt-2">Accepted: {{ r.q.accepted_answers|linebreaksbr }}</p>{% endif %}{% endif %}
+  <p class="mt-3">{% if r.a and r.a.awarded is not None %}<span class="pill {% if r.a.awarded == r.q.marks %}ok{% elif r.a.awarded == 0 %}bad{% else %}warn{% endif %}">{{ r.a.awarded|floatformat:"-2" }} / {{ r.q.marks|floatformat:"-2" }}</span>
+    {% elif r.a %}<span class="pill mute">Waiting for marking</span>{% else %}<span class="pill bad">0 / {{ r.q.marks|floatformat:"-2" }} · not answered</span>{% endif %}
+    {% if r.a and r.a.feedback %} <span class="muted">{{ r.a.feedback }}</span>{% endif %}</p></section>{% endfor %}
+{% else %}<div class="notice">Correct answers are not shown yet. They open {% if quiz.effective_review_policy == "manual" %}when your lecturer releases them{% else %}after the quiz closes{% endif %}.</div>{% endif %}
+</div>
+<aside class="attempt-side"><div class="card text-center">
+  {% if attempt.status == "graded" %}<div class="donut" style="background:conic-gradient(var({% if percent >= 50 %}--ok{% else %}--bad{% endif %}) {{ percent }}%, var(--line) 0)"><div class="donut-inner">{{ attempt.score|floatformat:"-2" }}/{{ total|floatformat:"-2" }}</div></div>
+    <b class="fs-lg">{{ percent }}%{% if percent >= 80 %} · Well done!{% endif %}</b>
+  {% else %}<div class="empty">{% icon "clock" %}<h3>Submitted</h3><p>Some answers are marked by your lecturer. Your mark will appear here when marking is finished.</p></div>{% endif %}
+  <a class="btn w-full justify-center mt-4" href="{% url 'courses:detail' quiz.course.pk %}">Back to course</a></div></aside>
+</div>
+{% endblock %}

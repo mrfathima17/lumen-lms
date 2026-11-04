@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Polls & surveys · {{ lumen_site.site_name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><h1>Polls & surveys</h1><p class="sub">Ask your students a quick question or run a short survey</p></div>
+{% if courses %}<form method="get" action="" class="cluster" onsubmit="location='/survey-manager/new/'+this.c.value+'/';return false"><select name="c" id="new-course" aria-label="Course">{% for c in courses %}<option value="{{ c.pk }}">{{ c.code }}</option>{% endfor %}</select><button class="btn" type="submit">{% icon "plus" %}New</button></form>{% endif %}</div>
+{% if rows %}<div class="card scroll-x"><table><thead><tr><th>Title</th><th>Course</th><th>Status</th><th>Answers</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr><td><b><a href="{% url 'surveys:editor' r.survey.pk %}">{{ r.survey.title }}</a></b> <span class="pill mute">{{ r.survey.get_kind_display }}</span></td><td>{{ r.survey.course.code }}</td>
+<td>{% if not r.survey.is_visible %}<span class="pill warn">Draft</span>{% elif r.state == "open" %}<span class="pill ok">Open</span>{% elif r.state == "closed" %}<span class="pill mute">Closed</span>{% else %}<span class="pill mute">Scheduled</span>{% endif %}</td><td>{{ r.count }}</td>
+<td><a class="btn sm ghost" href="{% url 'surveys:results' r.survey.pk %}">Results</a></td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="card empty">{% icon "bar-chart" %}<h3>No polls or surveys yet</h3><p>Pick a course above and press New.</p></div>{% endif %}
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% load lumen %}
+{% block title %}Manual grading · {{ quiz.title }}{% endblock %}
+{% block content %}
+<small class="muted"><a href="{% url 'courses:detail' quiz.course.pk %}">{{ quiz.course.code }}</a> / {{ quiz.title }}</small>
+<div class="split"><div><h1>Manual grading — {{ quiz.title }}</h1><p class="sub">Written answers waiting for you · {{ left }} left to grade</p></div>
+  <a class="btn ghost" href="{% url 'quizzes:attempts' quiz.pk %}">← Back to attempts</a></div>
+{% if question %}<div class="card mt-4">
+  <div class="notice mb-4">Question {{ number }} · <b>{{ question.text }}</b> ({{ question.marks|floatformat:"-2" }} mark{{ question.marks|pluralize }})</div>
+  <form method="post" novalidate>{% csrf_token %}<div class="scroll-x"><table><thead><tr><th>Student</th><th>Answer</th><th>Marks</th></tr></thead><tbody>
+  {% for a in answers %}<tr><td><div class="cluster"><span class="avatar sm">{{ a.attempt.student.initials }}</span>{{ a.attempt.student.get_full_name|default:a.attempt.student.username }}</div></td>
+  <td>{{ a.text|default:"—"|linebreaksbr }}</td><td><label class="sr-only" for="mark_{{ a.pk }}">Marks for {{ a.attempt.student.username }}</label><input id="mark_{{ a.pk }}" name="mark_{{ a.pk }}" inputmode="decimal" class="mw-100" value="{{ a.awarded|default_if_none:''|floatformat:'-2' }}"></td></tr>{% endfor %}
+  </tbody></table></div>
+  <div class="mt-4 cluster"><button class="btn" type="submit">Save all{% if qids|length > 1 %} &amp; next question →{% endif %}</button></div></form></div>
+{% else %}<div class="card empty mt-4">{% icon "check" %}<h3>Nothing waiting</h3><p>Every written answer has been marked.</p><a class="btn" href="{% url 'quizzes:attempts' quiz.pk %}">Back to attempts</a></div>{% endif %}
+{% endblock %}
