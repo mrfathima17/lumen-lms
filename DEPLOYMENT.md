@@ -2,7 +2,7 @@
 
 This guide takes a blank Linux server to a running Lumen. It uses Docker Compose, which runs MySQL, Redis, the web app, the background worker, the scheduler and nginx together.
 
-> **Database status:** the whole test suite (447 tests), a full backup and restore, Sinhala, Tamil and emoji text, and the main screens in a real browser were run against **MariaDB 10.11**. MySQL 8.4 (what the compose file uses) is very close but was not available for testing, so do the "first run" below on a test server and click through every role before real students use it. To re-run the tests against your own server: `pytest --ds=config.settings.test_mysql` (see that file).
+> **Database status:** the whole test suite (720 tests), a full backup and restore, Sinhala, Tamil and emoji text, and the main screens in a real browser were run against **MariaDB 10.11**. MySQL 8.4 (what the compose file uses) is very close but was not available for testing, so do the "first run" below on a test server and click through every role before real students use it. To re-run the tests against your own server: `pytest --ds=config.settings.test_mysql` (see that file).
 
 ## 1. What you need
 - A Linux server with 2 CPU cores, 4 GB RAM and 40 GB disk or more (more disk if people will upload many files; the default quota is 500 MB per person).
