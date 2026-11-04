@@ -88,7 +88,7 @@ def build(course, with_attendance=True, with_quizzes=True):
     # weekly activity: submissions and finished quiz attempts, last WEEKS weeks
     today = timezone.localdate()
     start = today - timedelta(days=today.weekday()) - timedelta(weeks=WEEKS - 1)
-    weeks = [{"label": (start + timedelta(weeks=i)).strftime("%-d %b"), "count": 0} for i in range(WEEKS)]
+    weeks = [{"label": (start + timedelta(weeks=i)).strftime("%d %b").lstrip("0"), "count": 0} for i in range(WEEKS)]
     since = timezone.make_aware(timezone.datetime.combine(start, timezone.datetime.min.time()))
     stamps = list(Submission.objects.filter(assignment__course=course, submitted_at__gte=since).values_list("submitted_at", flat=True))
     stamps += list(Attempt.objects.filter(quiz__course=course, submitted_at__gte=since).values_list("submitted_at", flat=True))

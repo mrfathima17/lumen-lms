@@ -60,6 +60,7 @@ def test_logo_upload_is_served_publicly_and_can_be_removed(admin_client, client)
     anon = Client()  # signed out: the sign-in page needs the logo
     r = anon.get(reverse("core:brand-asset", args=["logo"]))
     assert r.status_code == 200 and r["Content-Type"] == "image/png" and r["X-Content-Type-Options"] == "nosniff"
+    r.close()  # release the file handle, otherwise Windows refuses to delete the logo below
     assert b'class="has-img"' in anon.get(reverse("accounts:login")).content
     path = s.logo.path
     assert post(admin_client, remove_logo="1").status_code == 302
@@ -81,7 +82,9 @@ def test_background_image_replaces_preset_and_preset_replaces_image(admin_client
     post(admin_client, login_bg="", login_bg_data=png_data_url())
     s = SiteSettings.load()
     assert s.login_bg_image and s.login_bg == "" and s.login_bg_css.startswith("url('/branding/login-bg/?v=")
-    assert admin_client.get(reverse("core:brand-asset", args=["login-bg"])).status_code == 200
+    r = admin_client.get(reverse("core:brand-asset", args=["login-bg"]))
+    assert r.status_code == 200
+    r.close()  # release the file handle so Windows can delete the image below
     post(admin_client, login_bg=LOGIN_BACKGROUNDS[1], remove_login_image="1")
     s = SiteSettings.load()
     assert not s.login_bg_image and s.login_bg == LOGIN_BACKGROUNDS[1]

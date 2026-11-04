@@ -153,11 +153,11 @@ def _coming_up(open_items, deadlines, today):
     rows = []
     for t in open_items:
         pill = _days_pill(t.due_date, today) if t.due_date else ("mute", "No date")
-        rows.append({"kind": "task", "pk": t.pk, "title": t.title, "sub": "Personal" + (f" · {t.due_date:%a %-d %b}" if t.due_date else ""),
+        rows.append({"kind": "task", "pk": t.pk, "title": t.title, "sub": "Personal" + (f" · {t.due_date.strftime('%a %d %b').replace(' 0', ' ')}" if t.due_date else ""),
                      "pill": pill, "sort": (0, t.due_date) if t.due_date else (1, today)})
     for d in deadlines:
         day = timezone.localtime(d["at"]).date()
-        rows.append({"kind": d["kind"], "pk": d["pk"], "title": d["title"], "sub": f"{d['course']} · {timezone.localtime(d['at']):%a %-d %b}",
+        rows.append({"kind": d["kind"], "pk": d["pk"], "title": d["title"], "sub": f"{d['course']} · {timezone.localtime(d['at']).strftime('%a %d %b').replace(' 0', ' ')}",
                      "pill": _days_pill(day, today, d["kind"]), "sort": (0, day)})
     rows.sort(key=lambda r: r["sort"])
     return rows

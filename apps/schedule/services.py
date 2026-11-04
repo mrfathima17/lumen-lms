@@ -96,7 +96,7 @@ def timetable_grid(user, offset=0):
     cols = [{"weekday": w, "name": TimetableSlot.Weekday(w).label[:3], "date": monday + timedelta(days=w), "today": monday + timedelta(days=w) == today, "col": w + 2} for w in range(last + 1)]
     start_h = min([s.start_time.hour for s in slots] + [8])
     end_h = max([s.end_time.hour + (1 if s.end_time.minute else 0) for s in slots] + [17])
-    hours = [{"label": time(h).strftime("%-I %p"), "row": 2 + (h - start_h) * 2} for h in range(start_h, end_h)]
+    hours = [{"label": time(h).strftime("%I %p").lstrip("0"), "row": 2 + (h - start_h) * 2} for h in range(start_h, end_h)]
     events = []
     for n, s in enumerate(sorted(slots, key=lambda s: (s.weekday, s.start_time))):
         first = (s.start_time.hour - start_h) * 2 + (1 if s.start_time.minute >= 30 else 0)

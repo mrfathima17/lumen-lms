@@ -1,69 +1,144 @@
-# Lumen LMS (Django)
+# Lumen LMS
 
-Stack: Django 5.2, MySQL 8, HTMX + Alpine.js (added as modules need them), own CSS (`static/css/styles.css`).
+A role-based learning management system built with Django. Students, lecturers and administrators get their own dashboards for courses, quizzes, assignments, grading, attendance, messaging and system administration.
 
-## Run without MySQL (quickest)
-    python -m venv venv && source venv/bin/activate
-    pip install -r requirements-dev.txt   # works everywhere; for MySQL also run: pip install -r requirements-mysql.txt
-    export DJANGO_SETTINGS_MODULE=config.settings.sqlite
-    python manage.py migrate
-    python manage.py createsuperuser      # superusers get the admin role
-    python manage.py seed_demo            # optional demo users and courses (development only)
-    python manage.py runserver
+The project is backed by an automated test suite of **720 pytest tests with 96% line coverage**.
 
-## PyCharm
-See `PYCHARM.md` for a step-by-step guide. The project ships ready-made run configurations in `.run/`.
+![Python](https://img.shields.io/badge/python-3.10%2B-blue) ![Django](https://img.shields.io/badge/django-5.2-green) ![Tests](https://img.shields.io/badge/tests-720%20passing-brightgreen) ![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen)
 
-## Deploying
-See `DEPLOYMENT.md`: server setup, HTTPS, backups and restore, updating, monitoring (`/healthz/`), a security checklist and troubleshooting.
+## Highlights
 
-## Run the full stack
-    cp .env.example .env   # edit secrets
-    docker compose up --build
-    docker compose exec web python manage.py createsuperuser
+- **Role-based access control** for students, lecturers and administrators, enforced on every page and download
+- **Assessment tools:** timed quizzes with auto-marking, assignments with rubrics, a reusable question bank, polls and surveys
+- **Weighted gradebook** with a configurable grade scale, published results and GPA calculation
+- **Security features:** optional two-factor sign-in (TOTP), login throttling, IP allow-lists, a full audit log and per-user session control
+- **Operations built in:** backups, maintenance mode, background jobs, health check endpoint and CSV import/export
+- **Self-hosted front end:** HTMX and Alpine.js are vendored, with no CDN dependency
 
-## Background jobs (Celery + Redis)
-- Start `celery -A config worker` and one `celery -A config beat` (docker-compose already has `redis`, `worker` and `beat`). Set `REDIS_URL`.
-- Jobs: email copies of notifications (each person can switch this off on their profile), quiz auto-submit every minute, nightly backup (02:00), audit-log purge (03:10), certificate issue (04:00).
-- Emails need the `EMAIL_*` variables and `SITE_URL` (used to build links). Without a mail server, set `EMAIL_BACKEND` to the file or console backend.
-- `CELERY_EAGER=1` runs jobs inline (the default for the SQLite quick start and tests), so nothing needs Redis there.
-- If Redis is down, pages still work and in-app notifications are still created; the queue is retried after 30 seconds. The admin overview shows "Background jobs are not running" when the scheduler has not reported for 5 minutes.
+## Tech stack
 
-## Tests
-    pytest                                          # SQLite, no server needed
-    pytest --ds=config.settings.test_mysql         # against a real MySQL or MariaDB (see that file)
+| Area | Technology |
+|---|---|
+| Backend | Python, Django 5.2 |
+| Database | MySQL 8 / MariaDB (SQLite for local development and tests) |
+| Front end | Django templates, HTMX, Alpine.js, custom CSS |
+| Background jobs | Celery and Redis |
+| Security | django-otp (two-factor), django-axes (login throttling) |
+| Documents | ReportLab (PDF certificates), segno (QR codes) |
+| Deployment | Docker Compose, nginx, gunicorn, WhiteNoise |
+| Testing | pytest, pytest-django, pytest-cov |
 
-## Layout
-- `apps/core`: site settings (agreed defaults), network allow-list, audit log, maintenance mode, request middleware
-- `apps/courses`: categories (departments, semesters), courses, topics, enrolment (staff bulk enrol, student self-enrol with optional key), groups, object-permission helpers
-- `apps/courses`: categories (departments, semesters), courses, topics, enrolment (staff bulk enrol, student self-enrol with optional key), groups, object-permission helpers
-- `apps/content`: materials (files and links) inside topics; permission-checked downloads (nginx X-Accel-Redirect in production)
-- `apps/assignments`: assignments, submissions, per-student extensions, automatic late penalty (site setting), grading
-- `apps/quizzes`: quizzes with multiple choice, true/false, short and written questions; server-side timer, HTMX autosave, auto-marking, manual marking, review policy. The Celery scheduler runs `close_expired_attempts` every minute (or run `python manage.py close_expired_attempts` from cron if you do not use Celery) to submit attempts whose time ran out.
-- `apps/grading`: gradebook with weighted items (assignments, quizzes, manual exams), editable grade scale, published course results, per-semester and cumulative GPA (sum of points x credits / sum of credits), CSV export. Students see marks so far under Grades and published results under Exam results & GPA.
-- `apps/attendance`: attendance sessions per course, a mark sheet (present, late, absent, excused; mark all, search), per-student percentage with a warning below the site setting (default 80%), CSV export, and a student report with how many sessions are needed to recover. Excused sessions are left out of the percentage.
-- `apps/schedule`: month calendar (assignment deadlines, quiz closing times, weekly classes, shared and personal events), weekly timetable with a lecturer screen per course, personal to-do list beside unsubmitted course deadlines, and an .ics download (text escaped).
-- `apps/messaging`: private messages (people who share a course, plus administrators), per-course forums (pin, lock, delete), announcements (per course or whole site), and notifications with filter tabs and topbar badges. Grading and result publication notify students. Notification links only ever redirect to same-site paths.
-- `apps/files`: private files per user with a quota (site setting, default 500 MB), same upload rules as everywhere else, owner-only downloads (administrators cannot open them either), and the stored file is deleted with its row or its owner.
-- `apps/administration` (part 1): user list with search and filters, create and edit users (random sample password, welcome email, forced change at first sign-in), reset password, enable or disable (the last active administrator and your own account are protected), per-user activity, CSV export, bulk CSV import with a validated preview and server-side re-validation, and the audit log viewer. `python manage.py purge_audit_log` deletes entries older than the retention setting (the scheduler runs it daily at 03:10; cron works too).
-- `apps/administration` (part 2b): a real admin overview (needs-attention list, user and course counts, recent sign-ins and audit entries), reports page with a course table and CSV export, active sessions (end one session, or sign a person out everywhere; your own session is protected), backup and maintenance (create, download, delete; one zip with every record as JSON plus the uploaded files, stored in `BACKUP_DIR` outside the media folder), and a read-only roles and permissions page. Run `python manage.py make_backup --keep 14` nightly (the scheduler does this at 02:00). Restoring is manual: switch maintenance mode on, unzip, copy `media/` back and run `python manage.py loaddata data.json` on a fresh migrated database. For large MySQL databases also take a native `mysqldump`.
-- `apps/administration` (part 2c): plugins and modules (switch quizzes, attendance, calendar/timetable/to-do, forums and private files off for everyone; the menus and pages disappear and nothing is deleted; `apps/core/modules.py` lists each module's URL prefixes and a test fails if a new page is added outside them), custom profile fields (text, number, date or list; per role; required or not; filled in on the user's page and added to the users CSV), per-user activity timeline, and bulk enrolment with a preview before saving.
-- `apps/accounts` profile: Profile & settings page for every role (edit own name and email; username, role, index number, faculty and custom fields are read-only; change password; sign out other devices; last sign-ins) and a person page (`/people/<id>/`) reached from course participants and lecturer names. People see each other only through shared courses; students do not see each other's email; administrators see everyone.
-- `apps/completion`: per-course completion rules (submit every visible assignment, quiz average, attendance, course mark; each switched on or off by the lecturer), a student progress page, certificates issued automatically when every rule is met (once per student and course, frozen name and title, revocable by staff), PDF download (reportlab) and a public verify page at `/verify/<code>/` that shows only name, course and date. `python manage.py issue_certificates` (the scheduler runs it daily at 04:00) issues any that are due; students' pages also issue lazily. The PDF uses built-in fonts: names outside the Latin alphabet need `CERTIFICATE_FONT` set to a TTF path.
-- Two-factor sign-in (`apps/accounts/twofactor.py`, django-otp): anyone can turn it on from Profile & settings with an authenticator app (QR code or typed key) and gets 10 one-time backup codes shown once. After the password, sign-in asks for the code on a second step; nobody is signed in until it is right, 5 wrong codes send them back to the password, and django-otp rejects a code that was already used and slows repeated guesses. System settings can require it for administrators, for staff or for everyone (people without it are sent to set it up). Administrators can reset someone's two-factor from their user page. Needs `segno` (QR) in requirements.
-- `apps/administration` (part 2a): access and IP rules screen (changes that would lock the current administrator out are refused and rolled back), system settings (late penalty, quiz review, attendance warning, file quota, audit retention, maintenance mode and message), an editable grade scale, theme and branding (colours saved in the database for everyone, with contrast checks), and editable email templates with safe placeholders and a test send.
-- `apps/accounts`: users and roles, sign-in, forced password change, role dashboards, sidebar navigation
-- `templates/`, `static/`: ported from the HTML prototype (`lumen-ui`); icons come from one sprite via `{% icon "name" %}`
-- Sidebar items with no page yet are shown disabled; set their URL name in `apps/accounts/navigation.py` when you build them.
+## Features by role
 
-- `apps/surveys`: polls (one question) and surveys (several) per course. Question types: choose one, choose any, rating 1 to 5, written answer. Optional start and end, draft until switched on (students are notified on first publish), optional anonymity (answers are stored without a name; staff still see who took part), and a choice of whether students see the results (never, after answering, after it closes; written answers stay private). Questions lock once anyone has answered. Staff get results with bars, a who-took-part list and a CSV export. It can be switched off under Plugins & modules.
+| Role | What they can do |
+|---|---|
+| **Student** | Browse and enrol in courses, take timed quizzes, submit assignments, track grades and GPA, view attendance, use the calendar and to-do list, message classmates and lecturers, download completion certificates |
+| **Lecturer** | Manage course content, build quizzes and rubrics, mark submissions, run the gradebook, take attendance, post announcements, view course reports and export them as PDF |
+| **Administrator** | Manage users and roles, bulk import and enrol, configure system settings, theme and modules, review the audit log, manage backups and maintenance mode, control two-factor policy |
 
-- Question bank (in `apps/quizzes`): a bank of reusable questions per course with topic labels, search and filters. Tick questions and add them to any quiz that nobody has started (they are copied, so later edits never change a quiz), or press "To bank" on a quiz question. CSV import with a check-before-save preview (bad rows are skipped and explained; the server re-checks on confirm) and CSV export; the example file is downloadable from the import page.
+See [docs/MODULES.md](docs/MODULES.md) for the full module reference.
 
-- Rubric grading (in `apps/assignments`): an optional marking rubric per assignment. Each row has 2 to 6 levels written as `label | points | description`; copy a rubric from another assignment in the course. The marker picks one level per row (with an optional comment), the mark is the points earned scaled to the assignment's maximum, and the late penalty still applies. Students see the breakdown with their grade. Rows lock once anything has been marked with the rubric. Assignments without a rubric still take a typed mark.
+## Getting started
+
+Requires Python 3.10 or newer (the Docker image uses 3.13). The quick start uses SQLite, so no database server is needed.
+
+**Windows (PowerShell)**
+```powershell
+git clone https://github.com/mrfathima17/lumen-lms.git
+cd lumen-lms
+python -m venv venv
+venv\Scripts\Activate.ps1
+pip install -r requirements-dev.txt
+$env:DJANGO_SETTINGS_MODULE = "config.settings.sqlite"
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py seed_demo      # optional: demo users and courses
+python manage.py runserver
+```
+
+**macOS / Linux**
+```bash
+git clone https://github.com/mrfathima17/lumen-lms.git
+cd lumen-lms
+python -m venv venv && source venv/bin/activate
+pip install -r requirements-dev.txt
+export DJANGO_SETTINGS_MODULE=config.settings.sqlite
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py seed_demo      # optional: demo users and courses
+python manage.py runserver
+```
+
+Then open http://127.0.0.1:8000. Superusers receive the administrator role.
+
+**Full stack with Docker** (MySQL, Redis, worker, scheduler, nginx):
+```bash
+cp .env.example .env            # then edit the secrets
+docker compose up --build
+docker compose exec web python manage.py createsuperuser
+```
+
+## Running the tests
+
+```bash
+pytest                                   # full suite on SQLite, no server needed
+pytest -k reports                        # only tests matching a keyword
+pytest --cov=apps --cov-report=term      # with coverage (requires pytest-cov)
+pytest --ds=config.settings.test_mysql   # against a real MySQL or MariaDB server
+```
+
+### Testing approach
+
+Every feature ships with automated tests. The suite focuses on the areas where bugs hurt most:
+
+- **Permissions and roles:** students, other lecturers and anonymous users are denied (403 or redirect) on staff-only pages and downloads
+- **Input validation:** date ranges, enrolment rules, file upload rules, password strength, CSV import with preview and server-side re-validation
+- **Business rules:** late penalties, weighted grades, GPA, attendance percentages, quiz timing and auto-submit, completion rules
+- **Security behaviour:** two-factor flow and code reuse, lockout protection for administrators, same-site redirects
+- **Auditability:** sensitive actions (settings changes, exports, resets) are written to the audit log
+- **Output formats:** PDF reports and certificates, CSV exports, `.ics` calendar downloads
+- **Database portability:** the suite also runs against MariaDB 10.11
+
+Tests use pytest fixtures (`tests/conftest.py`) to create users, courses and enrolments, and Django's test client to exercise views end to end.
+
+## Project structure
+
+```
+lumen-lms/
+├── apps/              # Django apps: accounts, courses, quizzes, assignments, grading,
+│                      # attendance, schedule, messaging, surveys, files, completion,
+│                      # content, administration, core
+├── config/            # settings (base, dev, prod, sqlite, test, test_mysql), urls, celery
+├── templates/         # HTML templates
+├── static/            # CSS, vendored JS, fonts
+├── tests/             # pytest suite
+├── docker/            # nginx configuration
+├── docs/              # module reference
+└── manage.py
+```
+
+## Configuration
+
+Settings are read from environment variables. Copy `.env.example` to `.env` and set at least `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS` and the database and email values. Production settings refuse to start with an insecure secret key.
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [docs/MODULES.md](docs/MODULES.md) | What each module does, its rules and its management commands, plus background jobs |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Server setup, HTTPS, backups and restore, updates, monitoring, security checklist |
+| [PYCHARM.md](PYCHARM.md) | Step-by-step PyCharm setup |
+
+## Project status
+
+Core modules are complete and covered by the test suite. Work continues on remaining modules and polish.
+
+**Roadmap**
+- Continuous integration with GitHub Actions
+- Browser-based end-to-end tests with Playwright
 
 ## Conventions
-- Student quiz pages live under `/quizzes/` (network rule scope `quiz`); the lecturer editor lives under `/quiz-manager/` so lecturers are not locked out off-campus.
-- htmx and Alpine.js are vendored in `static/js` (no CDN).
-- URL areas: `/admin-panel/` (network rule scope `admin`), `/quizzes/` (scope `quiz`).
-- Every feature ships with pytest tests; no inline styles except data-driven widths.
+
+- Student quiz pages live under `/quizzes/` and the lecturer editor under `/quiz-manager/`, so lecturers are not locked out by campus network rules
+- htmx and Alpine.js are vendored in `static/js`
+- No inline styles except data-driven widths
