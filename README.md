@@ -128,6 +128,7 @@ Settings are read from environment variables. Copy `.env.example` to `.env` and 
 | [docs/MODULES.md](docs/MODULES.md) | What each module does, its rules and its management commands, plus background jobs |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Server setup, HTTPS, backups and restore, updates, monitoring, security checklist |
 | [PYCHARM.md](PYCHARM.md) | Step-by-step PyCharm setup |
+| [docs/BUG_REPORTS.md](docs/BUG_REPORTS.md) | Defects found by testing on Windows, with root cause and fix |
 
 ## Project status
 
