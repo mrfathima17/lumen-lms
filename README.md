@@ -129,6 +129,7 @@ Settings are read from environment variables. Copy `.env.example` to `.env` and 
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Server setup, HTTPS, backups and restore, updates, monitoring, security checklist |
 | [PYCHARM.md](PYCHARM.md) | Step-by-step PyCharm setup |
 | [docs/BUG_REPORTS.md](docs/BUG_REPORTS.md) | Defects found by testing on Windows, with root cause and fix |
+| [docs/TEST_PLAN.md](docs/TEST_PLAN.md) | What is tested, how, in which environments, and known gaps |
 
 ## Project status
 
