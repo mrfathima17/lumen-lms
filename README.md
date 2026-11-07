@@ -2,7 +2,7 @@
 
 A role-based learning management system built with Django. Students, lecturers and administrators get their own dashboards for courses, quizzes, assignments, grading, attendance, messaging and system administration.
 
-The project is backed by an automated test suite of **720 pytest tests with 96% line coverage**, plus a set of **Playwright browser tests** for key user journeys. The suite passes on both Windows and Linux.
+The project is backed by an automated test suite of **720 pytest tests with 96% line coverage**, plus **42 Playwright browser tests** that drive a real browser through key user journeys. The suite passes on both Windows and Linux.
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue) ![Django](https://img.shields.io/badge/django-5.2-green) ![Tests](https://img.shields.io/badge/tests-720%20passing-brightgreen) ![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen)
 
@@ -107,7 +107,7 @@ Every feature ships with automated tests. The suite focuses on the areas where b
 - **Output formats:** PDF certificates, CSV exports, `.ics` calendar downloads
 - **Database portability:** the suite also runs against MariaDB 10.11
 - **Cross-platform:** verified on Windows and Linux. Two Windows-only defects were found and fixed (see [docs/BUG_REPORTS.md](docs/BUG_REPORTS.md))
-- **Browser journeys:** Playwright tests sign in through the real login form, check that students are blocked from staff pages, and edit course settings as a lecturer
+- **Browser journeys:** Playwright tests go through the real screens: students take quizzes, submit assignments, enrol with a key, message lecturers and post to forums; lecturers post announcements, grade work, create quizzes and take attendance; administrators create and disable users, rebrand the site and read the audit log. A separate group checks that each role is blocked from pages it should not reach
 
 Tests use pytest fixtures (`tests/conftest.py`) to create users, courses and enrolments, and Django's test client to exercise views end to end.
 
@@ -148,7 +148,7 @@ Core modules are complete and covered by the test suite. Work continues on remai
 
 **Roadmap**
 - Run the test suite automatically on Windows and Linux with GitHub Actions (workflow file is ready in `.github/workflows`)
-- Extend the browser tests to quiz attempts and file uploads
+- Add browser tests for two-factor sign-in and CSV user import
 
 ## Conventions
 

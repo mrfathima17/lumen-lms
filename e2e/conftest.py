@@ -12,7 +12,7 @@ os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 import pytest  # noqa: E402
 from django.urls import reverse  # noqa: E402
 
-from tests.conftest import course, enrolled, lecturer, make_user, student, tmp_media  # noqa: E402,F401
+from tests.conftest import admin_user, course, enrolled, lecturer, make_user, student, tmp_media  # noqa: E402,F401
 
 PASSWORD = "Pass-12345-xyz"  # the default password make_user() gives every test user
 
@@ -74,3 +74,12 @@ def sign_in(page, url):
         page.locator("input[name=password]").fill(password)
         page.get_by_role("button", name="Sign in").click()
     return _sign_in
+
+
+@pytest.fixture
+def switch_to(page, sign_in):
+    """Sign the current user out (clear the session) and sign in as someone else, to check what they see."""
+    def _switch(user, password=PASSWORD):
+        page.context.clear_cookies()
+        sign_in(user, password)
+    return _switch

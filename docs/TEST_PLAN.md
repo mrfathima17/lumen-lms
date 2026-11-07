@@ -33,6 +33,7 @@ This plan describes how Lumen LMS is tested: what is covered, how, in which envi
 | Business-rule testing | Late penalties, weighted grades, GPA, attendance percentages, quiz timing and auto-submit, completion rules |
 | Output testing | PDF certificates, CSV exports, `.ics` calendar files |
 | Audit testing | Sensitive actions must write an audit-log entry |
+| Browser (end-to-end) testing | Playwright drives Chromium through real user journeys across all three roles: sign-in, quizzes, assignment submission and grading, enrolment, announcements, attendance, messaging, user management, branding and the audit log. A shared fixture records the whole run as one video |
 | Cross-platform testing | The full suite is run on Windows and Linux |
 
 Negative tests (what must not be allowed) are a priority alongside positive tests, because most serious defects in this kind of system are access or validation failures.
@@ -63,7 +64,8 @@ Fixtures in `tests/conftest.py` create users (student, lecturer, administrator),
 | Messaging and surveys | 52 |
 | Administration, audit, backups, import and theme | 272 |
 | Dashboards | 38 |
-| **Total** | **720** |
+| **Total (pytest)** | **720** |
+| Browser tests (Playwright) | 42 |
 
 Line coverage measured with pytest-cov over `apps/`: **96%**.
 
@@ -89,6 +91,6 @@ Defects are recorded with steps to reproduce, expected and actual results, root 
 ## 10. Planned improvements
 
 1. Turn on CI runs on Windows and Linux once the account billing lock is cleared
-2. Extend the Playwright end-to-end tests (first set covers sign-in, permissions and course settings) to quiz attempts and certificate download
+2. Extend the Playwright tests to two-factor sign-in, CSV user import and certificate download
 3. Add a manual test-case sheet for exploratory and usability checks
 4. Track coverage over time and set a minimum threshold in CI
