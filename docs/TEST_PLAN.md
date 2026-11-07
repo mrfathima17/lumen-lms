@@ -31,7 +31,7 @@ This plan describes how Lumen LMS is tested: what is covered, how, in which envi
 | Permission testing | Each staff-only page is requested as a student, as a lecturer of another course, and while signed out. Expected results are 403 or a redirect to sign-in |
 | Validation testing | Boundary and invalid inputs, such as end date before start date, oversized or wrong-type uploads, weak passwords and malformed CSV rows. Parametrised tests run many bad values through one check |
 | Business-rule testing | Late penalties, weighted grades, GPA, attendance percentages, quiz timing and auto-submit, completion rules |
-| Output testing | PDF reports and certificates, CSV exports, `.ics` calendar files |
+| Output testing | PDF certificates, CSV exports, `.ics` calendar files |
 | Audit testing | Sensitive actions must write an audit-log entry |
 | Cross-platform testing | The full suite is run on Windows and Linux |
 
@@ -89,6 +89,6 @@ Defects are recorded with steps to reproduce, expected and actual results, root 
 ## 10. Planned improvements
 
 1. Turn on CI runs on Windows and Linux once the account billing lock is cleared
-2. Add Playwright end-to-end tests for key flows: sign-in, course settings, quiz attempt and PDF export
+2. Extend the Playwright end-to-end tests (first set covers sign-in, permissions and course settings) to quiz attempts and certificate download
 3. Add a manual test-case sheet for exploratory and usability checks
 4. Track coverage over time and set a minimum threshold in CI

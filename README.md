@@ -2,7 +2,7 @@
 
 A role-based learning management system built with Django. Students, lecturers and administrators get their own dashboards for courses, quizzes, assignments, grading, attendance, messaging and system administration.
 
-The project is backed by an automated test suite of **720 pytest tests with 96% line coverage**.
+The project is backed by an automated test suite of **720 pytest tests with 96% line coverage**, plus a set of **Playwright browser tests** for key user journeys. The suite passes on both Windows and Linux.
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue) ![Django](https://img.shields.io/badge/django-5.2-green) ![Tests](https://img.shields.io/badge/tests-720%20passing-brightgreen) ![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen)
 
@@ -33,7 +33,7 @@ The project is backed by an automated test suite of **720 pytest tests with 96% 
 | Role | What they can do |
 |---|---|
 | **Student** | Browse and enrol in courses, take timed quizzes, submit assignments, track grades and GPA, view attendance, use the calendar and to-do list, message classmates and lecturers, download completion certificates |
-| **Lecturer** | Manage course content, build quizzes and rubrics, mark submissions, run the gradebook, take attendance, post announcements, view course reports and export them as PDF |
+| **Lecturer** | Manage course content, build quizzes and rubrics, mark submissions, run the gradebook, take attendance, post announcements, view course reports |
 | **Administrator** | Manage users and roles, bulk import and enrol, configure system settings, theme and modules, review the audit log, manage backups and maintenance mode, control two-factor policy |
 
 See [docs/MODULES.md](docs/MODULES.md) for the full module reference.
@@ -87,6 +87,14 @@ pytest --cov=apps --cov-report=term      # with coverage (requires pytest-cov)
 pytest --ds=config.settings.test_mysql   # against a real MySQL or MariaDB server
 ```
 
+**Browser (end-to-end) tests** use Playwright and run separately, so the main suite stays fast:
+```bash
+pip install -r requirements-e2e.txt
+playwright install chromium
+pytest e2e -o python_files="test_*.py"           # headless
+pytest e2e -o python_files="test_*.py" --headed  # watch the browser
+```
+
 ### Testing approach
 
 Every feature ships with automated tests. The suite focuses on the areas where bugs hurt most:
@@ -96,8 +104,10 @@ Every feature ships with automated tests. The suite focuses on the areas where b
 - **Business rules:** late penalties, weighted grades, GPA, attendance percentages, quiz timing and auto-submit, completion rules
 - **Security behaviour:** two-factor flow and code reuse, lockout protection for administrators, same-site redirects
 - **Auditability:** sensitive actions (settings changes, exports, resets) are written to the audit log
-- **Output formats:** PDF reports and certificates, CSV exports, `.ics` calendar downloads
+- **Output formats:** PDF certificates, CSV exports, `.ics` calendar downloads
 - **Database portability:** the suite also runs against MariaDB 10.11
+- **Cross-platform:** verified on Windows and Linux. Two Windows-only defects were found and fixed (see [docs/BUG_REPORTS.md](docs/BUG_REPORTS.md))
+- **Browser journeys:** Playwright tests sign in through the real login form, check that students are blocked from staff pages, and edit course settings as a lecturer
 
 Tests use pytest fixtures (`tests/conftest.py`) to create users, courses and enrolments, and Django's test client to exercise views end to end.
 
@@ -111,9 +121,10 @@ lumen-lms/
 ├── config/            # settings (base, dev, prod, sqlite, test, test_mysql), urls, celery
 ├── templates/         # HTML templates
 ├── static/            # CSS, vendored JS, fonts
-├── tests/             # pytest suite
+├── tests/             # pytest suite (backend and integration)
+├── e2e/               # Playwright browser tests
 ├── docker/            # nginx configuration
-├── docs/              # module reference
+├── docs/              # module reference, test plan, bug reports
 └── manage.py
 ```
 
@@ -126,18 +137,18 @@ Settings are read from environment variables. Copy `.env.example` to `.env` and 
 | Document | Contents |
 |---|---|
 | [docs/MODULES.md](docs/MODULES.md) | What each module does, its rules and its management commands, plus background jobs |
+| [docs/TEST_PLAN.md](docs/TEST_PLAN.md) | What is tested, how, in which environments, and known gaps |
+| [docs/BUG_REPORTS.md](docs/BUG_REPORTS.md) | Defects found by testing on Windows, with root cause and fix |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Server setup, HTTPS, backups and restore, updates, monitoring, security checklist |
 | [PYCHARM.md](PYCHARM.md) | Step-by-step PyCharm setup |
-| [docs/BUG_REPORTS.md](docs/BUG_REPORTS.md) | Defects found by testing on Windows, with root cause and fix |
-| [docs/TEST_PLAN.md](docs/TEST_PLAN.md) | What is tested, how, in which environments, and known gaps |
 
 ## Project status
 
 Core modules are complete and covered by the test suite. Work continues on remaining modules and polish.
 
 **Roadmap**
-- Continuous integration with GitHub Actions
-- Browser-based end-to-end tests with Playwright
+- Run the test suite automatically on Windows and Linux with GitHub Actions (workflow file is ready in `.github/workflows`)
+- Extend the browser tests to quiz attempts and file uploads
 
 ## Conventions
 
