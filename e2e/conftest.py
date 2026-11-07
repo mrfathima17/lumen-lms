@@ -17,6 +17,12 @@ from tests.conftest import course, enrolled, lecturer, make_user, student, tmp_m
 PASSWORD = "Pass-12345-xyz"  # the default password make_user() gives every test user
 
 
+def pytest_configure(config):
+    # The shared browser keeps its connection to the test server open until the very end, so Django logs a harmless
+    # "DatabaseWrapper ... thread" error while shutting down. It does not affect any result; hide the noise.
+    config.addinivalue_line("filterwarnings", "ignore::pytest.PytestUnhandledThreadExceptionWarning")
+
+
 # --- One shared browser page, so all tests are recorded into a single video ---------------------
 
 @pytest.fixture(scope="session")
